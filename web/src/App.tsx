@@ -1,14 +1,21 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-
-function HomePage() {
-  return <div className="p-8"><h1 className="text-2xl font-bold">AutoRuner4Test</h1></div>
-}
+import Layout from './components/Layout'
+import ComponentRegistry from './pages/ComponentRegistry'
+import TaskManager from './pages/TaskManager'
+import Dashboard from './pages/Dashboard'
+import KnowledgeBase from './pages/KnowledgeBase'
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<HomePage />} />
+        <Route element={<Layout />}>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/components" element={<ComponentRegistry />} />
+          <Route path="/tasks" element={<TaskManager />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/knowledge" element={<KnowledgeBase />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   )
