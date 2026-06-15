@@ -103,3 +103,15 @@ CREATE TABLE IF NOT EXISTS knowledge (
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 )
 `
+
+export const CREATE_KNOWLEDGE_LINKS_TABLE = `
+CREATE TABLE IF NOT EXISTS knowledge_links (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  source_id TEXT NOT NULL,
+  target_id TEXT NOT NULL,
+  relation_type TEXT NOT NULL DEFAULT 'related',
+  strength REAL NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE(source_id, target_id, relation_type)
+)
+`

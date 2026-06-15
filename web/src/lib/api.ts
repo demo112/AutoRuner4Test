@@ -43,5 +43,10 @@ export const api = {
     create: (data: any) => request<{ item: any }>('/knowledge', { method: 'POST', body: JSON.stringify(data) }),
     update: (id: string, data: any) => request<{ item: any }>(`/knowledge/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     search: (q: string) => request<{ items: any[] }>(`/knowledge/search?q=${encodeURIComponent(q)}`),
+    distill: (taskId?: string) => request<{ distilled: number; items: any[] }>('/knowledge/distill', { method: 'POST', body: JSON.stringify({ task_id: taskId }) }),
+    distillStatus: () => request<{ unprocessed_count: number; needs_distillation: boolean }>('/knowledge/distill/status'),
+    getRelated: (id: string) => request<{ related: any[] }>(`/knowledge/${id}/related`),
+    recommend: (type: string, tags: string[]) => request<{ recommendations: any[] }>(`/knowledge/recommend?type=${type}&tags=${tags.join(',')}`),
+    buildGraph: () => request<{ links_created: number }>('/knowledge/graph/build', { method: 'POST' }),
   },
 }
