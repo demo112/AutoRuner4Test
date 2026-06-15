@@ -6,6 +6,8 @@ import { componentRoutes } from './routes/components'
 import { taskRoutes } from './routes/tasks'
 import { knowledgeRoutes } from './routes/knowledge'
 
+import { createWorker } from './queue/worker'
+
 const app = new Hono()
 
 app.onError((err, c) => {
@@ -23,6 +25,15 @@ app.route('/api/knowledge', knowledgeRoutes)
 
 // 启动时迁移
 migrate()
+
+if (process.env.SKIP_REDIS !== 'true') {
+  try {
+    createWorker()
+    console.log('Task worker started')
+  } catch (e) {
+    console.warn('Redis not available, task worker not started:', (e as Error).message)
+  }
+}
 
 const port = Number(process.env.PORT) || 3000
 serve({

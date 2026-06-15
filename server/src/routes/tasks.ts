@@ -3,7 +3,6 @@ import {
   createTask,
   getTask,
   listTasks,
-  startTask,
   approveTask,
   rejectTask,
   retryTask,
@@ -12,6 +11,7 @@ import {
   TASK_TYPE_CONFIG,
 } from '../services/task-runner'
 import { getArtifact, getArtifactsByTask } from '../services/artifact-store'
+import { enqueueTask } from '../queue/producer'
 
 export const taskRoutes = new Hono()
 
@@ -42,10 +42,16 @@ taskRoutes.get('/:id', (c) => {
 })
 
 // 启动任务
-taskRoutes.post('/:id/start', (c) => {
-  const result = startTask(c.req.param('id'))
-  if ('error' in result) return c.json({ error: result.error }, 400)
-  return c.json({ task: result })
+taskRoutes.post('/:id/start', async (c) => {
+  const task = getTask(c.req.param('id'))
+  if (!task) return c.json({ error: 'Task not found' }, 404)
+  if (task.status !== 'pending') return c.json({ error: `Task is ${task.status}, not pending` }, 400)
+
+  const componentIds = JSON.parse(task.component_ids)
+  const config = JSON.parse(task.config)
+  await enqueueTask(task.id, task.type, componentIds, config, task.input_artifact_id || undefined)
+
+  return c.json({ task, message: 'Task queued' })
 })
 
 // 确认任务
