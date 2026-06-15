@@ -1,0 +1,26 @@
+{
+  "id": "skill-report-analyzer",
+  "name": "report-analyzer",
+  "type": "skill",
+  "version": "1.0.0",
+  "description": "分析 Jenkins 执行报告，识别失败根因，分类问题",
+  "author": "AutoRuner4Test",
+  "config_schema": {
+    "type": "object",
+    "properties": {
+      "failure_categories": {
+        "type": "string",
+        "title": "失败分类标准",
+        "enum": ["env_code_case", "severity", "component"],
+        "default": "env_code_case",
+        "description": "环境/代码/用例 / 严重程度 / 组件维度"
+      },
+      "include_suggestions": {
+        "type": "boolean",
+        "title": "包含修复建议",
+        "default": true
+      }
+    }
+  },
+  "dependencies": ["skill-jenkins-trigger"]
+}

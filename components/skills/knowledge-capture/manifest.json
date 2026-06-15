@@ -1,0 +1,26 @@
+{
+  "id": "skill-knowledge-capture",
+  "name": "knowledge-capture",
+  "type": "skill",
+  "version": "1.0.0",
+  "description": "从任务产出物中提炼可复用知识，写入知识库",
+  "author": "AutoRuner4Test",
+  "config_schema": {
+    "type": "object",
+    "properties": {
+      "knowledge_types": {
+        "type": "string",
+        "title": "提取类型",
+        "enum": ["all", "pattern", "lesson", "defect_pattern"],
+        "default": "all"
+      },
+      "min_confidence": {
+        "type": "number",
+        "title": "最低置信度",
+        "default": 0.7,
+        "description": "只有达到此置信度的知识才会写入"
+      }
+    }
+  },
+  "dependencies": ["mcp-knowledge"]
+}

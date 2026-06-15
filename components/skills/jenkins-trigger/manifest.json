@@ -1,0 +1,28 @@
+{
+  "id": "skill-jenkins-trigger",
+  "name": "jenkins-trigger",
+  "type": "skill",
+  "version": "1.0.0",
+  "description": "调用 Jenkins API 触发构建并监控执行状态",
+  "author": "AutoRuner4Test",
+  "config_schema": {
+    "type": "object",
+    "properties": {
+      "jenkins_url": {
+        "type": "string",
+        "title": "Jenkins 地址",
+        "default": ""
+      },
+      "job_name": {
+        "type": "string",
+        "title": "Job 名称"
+      },
+      "parameters": {
+        "type": "string",
+        "title": "构建参数(JSON)",
+        "description": "传递给 Jenkins 构建的参数，JSON 格式"
+      }
+    }
+  },
+  "dependencies": ["mcp-jenkins"]
+}

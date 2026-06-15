@@ -1,0 +1,30 @@
+{
+  "id": "skill-script-converter",
+  "name": "script-converter",
+  "type": "skill",
+  "version": "1.0.0",
+  "description": "将自然语言测试用例转换为自动化测试脚本",
+  "author": "AutoRuner4Test",
+  "config_schema": {
+    "type": "object",
+    "properties": {
+      "framework": {
+        "type": "string",
+        "title": "测试框架",
+        "enum": ["pytest", "jest", "testng", "robot"],
+        "default": "pytest"
+      },
+      "target_repo": {
+        "type": "string",
+        "title": "目标代码仓库路径",
+        "description": "已有自动化项目的 git 仓库路径"
+      },
+      "follow_conventions": {
+        "type": "boolean",
+        "title": "遵循团队编码规范",
+        "default": true
+      }
+    }
+  },
+  "dependencies": ["skill-testcase-generator"]
+}

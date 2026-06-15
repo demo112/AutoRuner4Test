@@ -1,0 +1,28 @@
+{
+  "id": "skill-issue-triage",
+  "name": "issue-triage",
+  "type": "skill",
+  "version": "1.0.0",
+  "description": "对确认的问题生成缺陷描述并判断是否提单",
+  "author": "AutoRuner4Test",
+  "config_schema": {
+    "type": "object",
+    "properties": {
+      "target_system": {
+        "type": "string",
+        "title": "缺陷系统",
+        "enum": ["jira", "tapd", "none"],
+        "default": "none",
+        "description": "提单目标系统，none 表示仅生成不提单"
+      },
+      "auto_file_threshold": {
+        "type": "string",
+        "title": "自动提单阈值",
+        "enum": ["blocker", "critical", "major"],
+        "default": "blocker",
+        "description": "达到此严重程度自动提单，低于此需人工确认"
+      }
+    }
+  },
+  "dependencies": ["skill-report-analyzer", "mcp-defect"]
+}
