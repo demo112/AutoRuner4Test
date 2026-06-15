@@ -2,11 +2,13 @@ import { Hono } from 'hono'
 import { serve } from 'bun'
 import { migrate } from './db/migrate'
 import { closeDb } from './db/client'
+import { componentRoutes } from './routes/components'
 
 const app = new Hono()
 
 app.get('/', (c) => c.json({ name: 'autoruner4test', version: '0.1.0' }))
 app.get('/api/health', (c) => c.json({ status: 'ok' }))
+app.route('/api/components', componentRoutes)
 
 // 启动时迁移
 migrate()
