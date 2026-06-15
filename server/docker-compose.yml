@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+      - "3001:3001"
+    environment:
+      - PORT=3000
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - DB_PATH=/app/data/db/autoruner.db
+      - ARTIFACTS_DIR=/app/data/artifacts
+      - KNOWLEDGE_DIR=/app/data/knowledge
+      - WORK_DIR_BASE=/app/data/workdirs
+      - MAX_CONCURRENT_INSTANCES=3
+    volumes:
+      - app-data:/app/data
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+volumes:
+  app-data:
+  redis-data:
