@@ -1,0 +1,28 @@
+{
+  "id": "mcp-jenkins",
+  "name": "jenkins-mcp",
+  "type": "mcp",
+  "version": "1.0.0",
+  "description": "Jenkins API 集成：触发构建、查询状态、获取报告",
+  "author": "AutoRuner4Test",
+  "config_schema": {
+    "type": "object",
+    "properties": {
+      "jenkins_url": {
+        "type": "string",
+        "title": "Jenkins 服务器地址"
+      },
+      "username": {
+        "type": "string",
+        "title": "用户名"
+      },
+      "api_token": {
+        "type": "string",
+        "title": "API Token"
+      }
+    },
+    "required": ["jenkins_url", "username", "api_token"]
+  },
+  "dependencies": [],
+  "transport": "stdio"
+}
