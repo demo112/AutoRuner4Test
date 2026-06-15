@@ -1,0 +1,19 @@
+{
+  "id": "rule-knowledge-schema",
+  "name": "knowledge-schema",
+  "type": "rule",
+  "version": "1.0.0",
+  "description": "知识条目必须包含：问题、根因、解法、适用场景",
+  "author": "AutoRuner4Test",
+  "config_schema": {
+    "type": "object",
+    "properties": {
+      "require_root_cause": {
+        "type": "boolean",
+        "title": "要求根因分析",
+        "default": true
+      }
+    }
+  },
+  "dependencies": []
+}

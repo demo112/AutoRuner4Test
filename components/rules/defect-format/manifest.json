@@ -1,0 +1,24 @@
+{
+  "id": "rule-defect-format",
+  "name": "defect-format",
+  "type": "rule",
+  "version": "1.0.0",
+  "description": "缺陷提单必须包含：复现步骤、预期结果、实际结果、环境信息",
+  "author": "AutoRuner4Test",
+  "config_schema": {
+    "type": "object",
+    "properties": {
+      "require_screenshot": {
+        "type": "boolean",
+        "title": "要求截图",
+        "default": false
+      },
+      "require_logs": {
+        "type": "boolean",
+        "title": "要求日志",
+        "default": true
+      }
+    }
+  },
+  "dependencies": []
+}

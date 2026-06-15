@@ -1,0 +1,31 @@
+{
+  "id": "rule-test-script-standard",
+  "name": "test-script-standard",
+  "type": "rule",
+  "version": "1.0.0",
+  "description": "脚本必须符合团队规范（命名、结构、断言模式）",
+  "author": "AutoRuner4Test",
+  "config_schema": {
+    "type": "object",
+    "properties": {
+      "naming_convention": {
+        "type": "string",
+        "title": "命名规范",
+        "enum": ["snake_case", "camelCase"],
+        "default": "snake_case"
+      },
+      "require_docstring": {
+        "type": "boolean",
+        "title": "要求文档字符串",
+        "default": true
+      },
+      "assertion_style": {
+        "type": "string",
+        "title": "断言风格",
+        "enum": ["explicit_message", "minimal"],
+        "default": "explicit_message"
+      }
+    }
+  },
+  "dependencies": []
+}
