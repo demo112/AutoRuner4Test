@@ -5,7 +5,11 @@ import {
   CREATE_ARTIFACTS_TABLE,
   CREATE_KNOWLEDGE_TABLE,
   CREATE_KNOWLEDGE_LINKS_TABLE,
+  CREATE_USERS_TABLE,
 } from './schema'
+import { moduleLogger } from '../services/logger'
+
+const log = moduleLogger('migrate')
 
 export function migrate(): void {
   const db = getDb()
@@ -14,5 +18,6 @@ export function migrate(): void {
   db.exec(CREATE_ARTIFACTS_TABLE)
   db.exec(CREATE_KNOWLEDGE_TABLE)
   db.exec(CREATE_KNOWLEDGE_LINKS_TABLE)
-  console.log('Database migration complete')
+  db.exec(CREATE_USERS_TABLE)
+  log.info('Database migration complete')
 }

@@ -4,6 +4,8 @@ import { closeDb } from './db/client'
 import { componentRoutes } from './routes/components'
 import { taskRoutes } from './routes/tasks'
 import { knowledgeRoutes } from './routes/knowledge'
+import authRoutes from './routes/auth'
+import { authMiddleware } from './middleware/auth'
 import { createWorker } from './queue/worker'
 import { addClient, removeClient, handleSubscription } from './ws/handler'
 import { moduleLogger } from './services/logger'
@@ -20,7 +22,16 @@ app.onError((err, c) => {
 })
 
 app.get('/', (c) => c.json({ name: 'autoruner4test', version: '0.1.0' }))
+
+// 鉴权路由（不需要 auth 中间件）
+app.route('/api/auth', authRoutes)
+
+// 健康检查也不需要鉴权
 app.get('/api/health', (c) => c.json({ status: 'ok' }))
+
+// API 鉴权中间件（在 auth 路由之后注册，不影响 /api/auth/*）
+app.use('/api/*', authMiddleware)
+
 app.route('/api/components', componentRoutes)
 app.route('/api/tasks', taskRoutes)
 app.route('/api/knowledge', knowledgeRoutes)

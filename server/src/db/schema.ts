@@ -115,3 +115,14 @@ CREATE TABLE IF NOT EXISTS knowledge_links (
   UNIQUE(source_id, target_id, relation_type)
 )
 `
+
+export const CREATE_USERS_TABLE = `
+CREATE TABLE IF NOT EXISTS users (
+  id TEXT PRIMARY KEY,
+  username TEXT NOT NULL UNIQUE,
+  password_hash TEXT NOT NULL,
+  role TEXT NOT NULL DEFAULT 'operator',
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  last_login TEXT
+)
+`
