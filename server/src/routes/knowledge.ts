@@ -33,12 +33,17 @@ knowledgeRoutes.get('/:id', (c) => {
 // 创建
 knowledgeRoutes.post('/', async (c) => {
   const body = await c.req.json()
-  if (!body.type) return c.json({ error: 'type is required' }, 400)
-  if (!body.title) return c.json({ error: 'title is required' }, 400)
+  if (!body.type || !body.title) {
+    return c.json({ error: 'type and title are required' }, 400)
+  }
 
   const validTypes = ['pattern', 'lesson', 'defect_pattern', 'script_template']
   if (!validTypes.includes(body.type)) {
     return c.json({ error: `type must be one of: ${validTypes.join(', ')}` }, 400)
+  }
+
+  if (body.tags !== undefined && !Array.isArray(body.tags)) {
+    return c.json({ error: 'tags must be an array' }, 400)
   }
 
   const item = createKnowledge(body)
@@ -48,6 +53,18 @@ knowledgeRoutes.post('/', async (c) => {
 // 更新
 knowledgeRoutes.put('/:id', async (c) => {
   const body = await c.req.json()
+
+  if (body.type) {
+    const validTypes = ['pattern', 'lesson', 'defect_pattern', 'script_template']
+    if (!validTypes.includes(body.type)) {
+      return c.json({ error: `type must be one of: ${validTypes.join(', ')}` }, 400)
+    }
+  }
+
+  if (body.tags !== undefined && !Array.isArray(body.tags)) {
+    return c.json({ error: 'tags must be an array' }, 400)
+  }
+
   const item = updateKnowledge(c.req.param('id'), body)
   if (!item) return c.json({ error: 'Knowledge not found' }, 404)
   return c.json({ item })

@@ -9,14 +9,14 @@ function ensureDir(): void {
   fs.mkdirSync(KNOWLEDGE_DIR, { recursive: true })
 }
 
-function writeObsidianFile(id: string, title: string, type: string, content: string, tags: string[]): void {
+function writeObsidianFile(id: string, title: string, type: string, sourceTaskId: string | null, content: string, tags: string[], createdAt: string): void {
   ensureDir()
   const frontmatter = [
     '---',
-    `id: ${id}`,
     `type: ${type}`,
+    `source_task: ${sourceTaskId || ''}`,
     `tags: [${tags.join(', ')}]`,
-    `updated: ${new Date().toISOString()}`,
+    `created: ${createdAt}`,
     '---',
     '',
   ].join('\n')
@@ -42,7 +42,7 @@ export function createKnowledge(data: {
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `).run(id, data.type, data.source_task_id ?? null, data.title, content, tagsJson, now, now)
 
-  writeObsidianFile(id, data.title, data.type, content, tags)
+  writeObsidianFile(id, data.title, data.type, data.source_task_id ?? null, content, tags, now)
 
   return {
     id,
@@ -71,11 +71,11 @@ export function listKnowledge(type?: string, tag?: string): Knowledge[] {
     params.push(type)
   }
   if (tag) {
-    sql += ' AND tags LIKE ?'
-    params.push(`%"${tag}"%`)
+    sql += ' AND EXISTS (SELECT 1 FROM json_each(tags) WHERE json_each.value = ?)'
+    params.push(tag)
   }
 
-  sql += ' ORDER BY updated_at DESC'
+  sql += ' ORDER BY created_at DESC'
   return db.prepare(sql).all(...params) as Knowledge[]
 }
 
@@ -90,7 +90,7 @@ export function updateKnowledge(id: string, data: {
 
   const title = data.title ?? existing.title
   const content = data.content ?? existing.content
-  const tags = data.tags ?? JSON.parse(existing.tags)
+  const tags = data.tags ?? (() => { try { return JSON.parse(existing.tags) } catch { return [] } })()
   const tagsJson = JSON.stringify(tags)
   const type = data.type ?? existing.type
   const now = new Date().toISOString()
@@ -100,7 +100,7 @@ export function updateKnowledge(id: string, data: {
     UPDATE knowledge SET title = ?, content = ?, tags = ?, type = ?, updated_at = ? WHERE id = ?
   `).run(title, content, tagsJson, type, now, id)
 
-  writeObsidianFile(id, title, type, content, tags)
+  writeObsidianFile(id, title, type, existing.source_task_id, content, tags, existing.created_at)
 
   return { ...existing, title, content, tags: tagsJson, type, updated_at: now }
 }
@@ -109,6 +109,6 @@ export function searchKnowledge(query: string): Knowledge[] {
   const db = getDb()
   const pattern = `%${query}%`
   return db.prepare(
-    'SELECT * FROM knowledge WHERE title LIKE ? OR content LIKE ? ORDER BY updated_at DESC'
+    'SELECT * FROM knowledge WHERE title LIKE ? OR content LIKE ? ORDER BY created_at DESC'
   ).all(pattern, pattern) as Knowledge[]
 }
