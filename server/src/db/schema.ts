@@ -126,3 +126,16 @@ CREATE TABLE IF NOT EXISTS users (
   last_login TEXT
 )
 `
+
+export const CREATE_CREDENTIALS_TABLE = `
+CREATE TABLE IF NOT EXISTS credentials (
+  id TEXT PRIMARY KEY,
+  component_id TEXT NOT NULL,
+  key_name TEXT NOT NULL,
+  encrypted_value TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE(component_id, key_name),
+  FOREIGN KEY (component_id) REFERENCES components(id)
+)
+`

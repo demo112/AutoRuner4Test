@@ -8,6 +8,9 @@ import {
   getComponentSchema,
   toggleComponent,
 } from '../services/component-registry'
+import { credentialStore } from '../services/credential-store'
+
+const SENSITIVE_PATTERNS = ['password', 'token', 'api_key', 'secret', 'apikey', 'accesskey', 'secretkey']
 
 export const componentRoutes = new Hono()
 
@@ -46,10 +49,21 @@ componentRoutes.delete('/:id', (c) => {
   return c.json({ ok: true })
 })
 
-// 更新组件配置
+// 更新组件配置（敏感字段自动分离到凭据存储）
 componentRoutes.put('/:id/config', async (c) => {
+  const id = c.req.param('id')
   const body = await c.req.json()
-  const comp = updateComponentConfig(c.req.param('id'), body)
+
+  const safeConfig: Record<string, any> = {}
+  for (const [key, value] of Object.entries(body)) {
+    if (SENSITIVE_PATTERNS.some(p => key.toLowerCase().includes(p))) {
+      credentialStore.save(id, key, String(value))
+    } else {
+      safeConfig[key] = value
+    }
+  }
+
+  const comp = updateComponentConfig(id, safeConfig)
   if (!comp) return c.json({ error: 'Component not found' }, 404)
   return c.json({ component: comp })
 })
