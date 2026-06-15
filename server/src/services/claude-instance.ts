@@ -4,6 +4,8 @@ import fs from 'fs'
 
 const WORK_DIR_BASE = process.env.WORK_DIR_BASE || path.join(process.cwd(), 'data', 'workdirs')
 const MAX_CONCURRENT = Number(process.env.MAX_CONCURRENT_INSTANCES) || 3
+const MAX_OUTPUT_BYTES = Number(process.env.MAX_INSTANCE_OUTPUT_BYTES) || 1024 * 1024 // 1MB
+const MAX_PROMPT_LENGTH = Number(process.env.MAX_PROMPT_LENGTH) || 100_000
 
 interface ClaudeInstance {
   id: string
@@ -13,8 +15,15 @@ interface ClaudeInstance {
   status: 'starting' | 'running' | 'completed' | 'failed'
   stdout: string
   stderr: string
+  outputTruncated: boolean
   startedAt: string
   completedAt: string | null
+}
+
+function validateTaskId(taskId: string): void {
+  if (taskId.includes('..') || taskId.includes('/') || taskId.includes('\\')) {
+    throw new Error('Invalid taskId: must not contain path traversal characters')
+  }
 }
 
 const activeInstances = new Map<string, ClaudeInstance>()
@@ -98,6 +107,8 @@ export function startClaudeInstance(
     return { instanceId: '', error: `Max concurrent instances (${MAX_CONCURRENT}) reached` }
   }
 
+  validateTaskId(taskId)
+
   const instanceId = crypto.randomUUID()
   const workDir = path.join(WORK_DIR_BASE, taskId)
   fs.mkdirSync(workDir, { recursive: true })
@@ -109,6 +120,9 @@ export function startClaudeInstance(
   }
 
   const prompt = buildTaskPrompt(taskType, config, inputContent)
+  if (prompt.length > MAX_PROMPT_LENGTH) {
+    return { instanceId: '', error: `Prompt exceeds maximum length (${MAX_PROMPT_LENGTH} chars)` }
+  }
 
   const instance: ClaudeInstance = {
     id: instanceId,
@@ -118,6 +132,7 @@ export function startClaudeInstance(
     status: 'starting',
     stdout: '',
     stderr: '',
+    outputTruncated: false,
     startedAt: new Date().toISOString(),
     completedAt: null,
   }
@@ -133,11 +148,19 @@ export function startClaudeInstance(
   instance.status = 'running'
 
   proc.stdout?.on('data', (data: Buffer) => {
-    instance.stdout += data.toString()
+    if (Buffer.byteLength(instance.stdout, 'utf-8') < MAX_OUTPUT_BYTES) {
+      instance.stdout += data.toString()
+    } else if (!instance.outputTruncated) {
+      instance.outputTruncated = true
+    }
   })
 
   proc.stderr?.on('data', (data: Buffer) => {
-    instance.stderr += data.toString()
+    if (Buffer.byteLength(instance.stderr, 'utf-8') < MAX_OUTPUT_BYTES) {
+      instance.stderr += data.toString()
+    } else if (!instance.outputTruncated) {
+      instance.outputTruncated = true
+    }
   })
 
   proc.on('close', (code) => {
@@ -162,8 +185,12 @@ export function stopInstance(instanceId: string): boolean {
   const instance = activeInstances.get(instanceId)
   if (!instance || !instance.process) return false
   instance.process.kill('SIGTERM')
-  instance.status = 'failed'
-  instance.completedAt = new Date().toISOString()
+  // Don't set status here — the 'close' handler will set final status
+  // After 5s, force kill if process hasn't exited
+  const pid = instance.process.pid
+  setTimeout(() => {
+    try { process.kill(pid!, 'SIGKILL') } catch { /* already exited */ }
+  }, 5000)
   return true
 }
 
