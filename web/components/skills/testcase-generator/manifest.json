@@ -1,0 +1,26 @@
+{
+  "id": "skill-testcase-generator",
+  "name": "testcase-generator",
+  "type": "skill",
+  "version": "1.0.0",
+  "description": "基于结构化需求生成测试用例（等价类、边界值、正交法）",
+  "author": "AutoRuner4Test",
+  "config_schema": {
+    "type": "object",
+    "properties": {
+      "methods": {
+        "type": "string",
+        "title": "用例设计方法",
+        "enum": ["equivalence_boundary", "orthogonal", "all_pairs", "comprehensive"],
+        "default": "equivalence_boundary",
+        "description": "等价类+边界值 / 正交法 / 配对测试 / 综合"
+      },
+      "coverage_target": {
+        "type": "number",
+        "title": "覆盖目标(%)",
+        "default": 85
+      }
+    }
+  },
+  "dependencies": ["skill-requirement-analysis"]
+}
