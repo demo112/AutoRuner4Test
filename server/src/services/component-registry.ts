@@ -1,5 +1,8 @@
 import { getDb } from '../db/client'
 import type { Component } from '../db/schema'
+import { moduleLogger } from './logger'
+
+const log = moduleLogger('component-registry')
 
 export function listComponents(type?: string, installedOnly?: boolean): Component[] {
   const db = getDb()
@@ -46,6 +49,7 @@ export function installComponent(data: {
   )
   const comp = getComponent(id)
   if (!comp) throw new Error('Failed to retrieve installed component')
+  log.info('Component installed', { id, name: data.name, type: data.type })
   return comp
 }
 
@@ -55,6 +59,7 @@ export function uninstallComponent(id: string): boolean {
   if (!existing) return false
   db.prepare('UPDATE components SET installed = 0, updated_at = ? WHERE id = ?')
     .run(new Date().toISOString(), id)
+  log.info('Component uninstalled', { id: existing.name })
   return true
 }
 

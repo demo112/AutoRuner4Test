@@ -6,6 +6,9 @@ import { taskRoutes } from './routes/tasks'
 import { knowledgeRoutes } from './routes/knowledge'
 import { createWorker } from './queue/worker'
 import { addClient, removeClient, handleSubscription } from './ws/handler'
+import { moduleLogger } from './services/logger'
+
+const log = moduleLogger('server')
 
 const app = new Hono()
 
@@ -28,9 +31,9 @@ migrate()
 if (process.env.SKIP_REDIS !== 'true') {
   try {
     createWorker()
-    console.log('Task worker started')
+    log.info('Task worker started')
   } catch (e) {
-    console.warn('Redis not available, task worker not started:', (e as Error).message)
+    log.warn('Redis not available, task worker not started', { error: (e as Error).message })
   }
 }
 
@@ -63,7 +66,7 @@ Bun.serve({
   },
 })
 
-console.log(`Server running on port ${port} (HTTP + WebSocket at /ws)`)
+log.info('Server started', { port, env: process.env.NODE_ENV || 'development' })
 
 // 优雅关闭
 process.on('SIGINT', () => {

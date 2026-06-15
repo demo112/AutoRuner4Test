@@ -1,6 +1,9 @@
 import { getDb } from '../db/client'
 import type { Task } from '../db/schema'
 import { broadcast } from '../ws/handler'
+import { moduleLogger } from './logger'
+
+const log = moduleLogger('task-runner')
 
 const TASK_TYPE_CONFIG: Record<string, { needsReview: boolean; description: string }> = {
   'requirement-analysis': { needsReview: true, description: '需求分析' },
@@ -77,11 +80,13 @@ export function transitionTask(id: string, newStatus: Task['status']): Task | { 
   const task = getTask(id)
   if (!task) return { error: 'Task not found' }
   if (!canTransition(task.status, newStatus)) {
+    log.warn('Invalid task transition', { taskId: id, from: task.status, to: newStatus })
     return { error: `Cannot transition from ${task.status} to ${newStatus}` }
   }
   const db = getDb()
   db.prepare('UPDATE tasks SET status = ?, updated_at = ? WHERE id = ?')
     .run(newStatus, new Date().toISOString(), id)
+  log.info('Task status changed', { taskId: id, from: task.status, to: newStatus })
   broadcast('task:status-changed', id, { from: task.status, to: newStatus })
   if (newStatus === 'review') {
     broadcast('task:review-requested', id, { task: getTask(id) })

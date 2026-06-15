@@ -1,6 +1,9 @@
 import { spawn, ChildProcess } from 'child_process'
 import path from 'path'
 import fs from 'fs'
+import { moduleLogger } from './logger'
+
+const log = moduleLogger('claude-instance')
 
 const WORK_DIR_BASE = process.env.WORK_DIR_BASE || path.join(process.cwd(), 'data', 'workdirs')
 const MAX_CONCURRENT = Number(process.env.MAX_CONCURRENT_INSTANCES) || 3
@@ -104,6 +107,7 @@ export function startClaudeInstance(
   inputContent?: string,
 ): { instanceId: string; error?: string } {
   if (!canStartInstance()) {
+    log.warn('Max concurrent instances reached', { max: MAX_CONCURRENT })
     return { instanceId: '', error: `Max concurrent instances (${MAX_CONCURRENT}) reached` }
   }
 
@@ -167,9 +171,16 @@ export function startClaudeInstance(
     instance.status = code === 0 ? 'completed' : 'failed'
     instance.completedAt = new Date().toISOString()
     instance.process = null
+    const duration = Date.now() - new Date(instance.startedAt).getTime()
+    if (code === 0) {
+      log.info('Claude instance completed', { instanceId, taskId: instance.taskId, duration })
+    } else {
+      log.error('Claude instance failed', { instanceId, taskId: instance.taskId, exitCode: code, duration })
+    }
   })
 
   activeInstances.set(instanceId, instance)
+  log.info('Claude instance started', { instanceId, taskId, taskType })
   return { instanceId }
 }
 
