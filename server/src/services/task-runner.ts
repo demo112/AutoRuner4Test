@@ -9,6 +9,8 @@ const TASK_TYPE_CONFIG: Record<string, { needsReview: boolean; description: stri
   'issue-triage': { needsReview: true, description: '提单处理' },
 }
 
+export { TASK_TYPE_CONFIG }
+
 export function createTask(data: {
   type: Task['type']
   component_ids?: string[]
@@ -58,6 +60,7 @@ export function listTasks(type?: string, status?: string): Task[] {
 const VALID_TRANSITIONS: Array<{ from: Task['status']; to: Task['status'] }> = [
   { from: 'pending', to: 'running' },
   { from: 'running', to: 'review' },
+  { from: 'running', to: 'completed' },
   { from: 'running', to: 'failed' },
   { from: 'review', to: 'approved' },
   { from: 'review', to: 'failed' },
@@ -84,14 +87,34 @@ export function transitionTask(id: string, newStatus: Task['status']): Task | { 
 }
 
 export function startTask(id: string): Task | { error: string } {
-  return transitionTask(id, 'running')
+  const task = getTask(id)
+  if (!task) return { error: 'Task not found' }
+  if (!canTransition(task.status, 'running')) {
+    return { error: `Cannot transition from ${task.status} to running` }
+  }
+  const db = getDb()
+  const now = new Date().toISOString()
+  // needsReview=false 的任务类型，running 状态标记为实际 running
+  // 需要人工 review 的任务才会进入 review 状态
+  db.prepare('UPDATE tasks SET status = ?, updated_at = ? WHERE id = ?')
+    .run('running', now, id)
+  return getTask(id) as Task
 }
 
 export function approveTask(id: string): Task | { error: string } {
-  const result = transitionTask(id, 'approved')
-  if ('error' in result) return result
-  // 自动推进到 completed
-  return transitionTask(id, 'completed')
+  const task = getTask(id)
+  if (!task) return { error: 'Task not found' }
+  if (!canTransition(task.status, 'approved')) {
+    return { error: `Cannot transition from ${task.status} to approved` }
+  }
+  const db = getDb()
+  const now = new Date().toISOString()
+  // 原子跳转：review → completed，跳过 approved 中间状态
+  db.prepare('UPDATE tasks SET status = ?, updated_at = ? WHERE id = ?')
+    .run('completed', now, id)
+  const updated = getTask(id)
+  if (!updated) return { error: 'Failed to retrieve updated task' }
+  return updated
 }
 
 export function rejectTask(id: string): Task | { error: string } {
@@ -100,6 +123,28 @@ export function rejectTask(id: string): Task | { error: string } {
 
 export function retryTask(id: string): Task | { error: string } {
   return transitionTask(id, 'pending')
+}
+
+// running → review（needsReview=true 的任务完成后调用）
+export function submitForReview(id: string): Task | { error: string } {
+  const task = getTask(id)
+  if (!task) return { error: 'Task not found' }
+  const typeInfo = TASK_TYPE_CONFIG[task.type]
+  if (typeInfo && !typeInfo.needsReview) {
+    return { error: `Task type ${task.type} does not require review, use completeTask instead` }
+  }
+  return transitionTask(id, 'review')
+}
+
+// running → completed（needsReview=false 的任务完成后调用）
+export function completeTask(id: string): Task | { error: string } {
+  const task = getTask(id)
+  if (!task) return { error: 'Task not found' }
+  const typeInfo = TASK_TYPE_CONFIG[task.type]
+  if (typeInfo && typeInfo.needsReview) {
+    return { error: `Task type ${task.type} requires review, use submitForReview instead` }
+  }
+  return transitionTask(id, 'completed')
 }
 
 export function getTaskTypeInfo(type: string) {

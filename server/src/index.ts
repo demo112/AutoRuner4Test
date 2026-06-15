@@ -7,6 +7,13 @@ import { taskRoutes } from './routes/tasks'
 
 const app = new Hono()
 
+app.onError((err, c) => {
+  if (err instanceof SyntaxError) {
+    return c.json({ error: 'Invalid JSON in request body' }, 400)
+  }
+  return c.json({ error: 'Internal server error' }, 500)
+})
+
 app.get('/', (c) => c.json({ name: 'autoruner4test', version: '0.1.0' }))
 app.get('/api/health', (c) => c.json({ status: 'ok' }))
 app.route('/api/components', componentRoutes)

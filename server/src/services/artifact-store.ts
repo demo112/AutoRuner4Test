@@ -1,6 +1,7 @@
 import path from 'path'
 import fs from 'fs'
 import { getDb } from '../db/client'
+import type { Artifact } from '../db/schema'
 
 const ARTIFACTS_DIR = process.env.ARTIFACTS_DIR || path.join(process.cwd(), 'data', 'artifacts')
 
@@ -9,6 +10,9 @@ function ensureDir(): void {
 }
 
 export function saveArtifact(taskId: string, name: string, type: string, content: string): string {
+  if (name.includes('/') || name.includes('\\') || name.includes('..')) {
+    throw new Error('Artifact name must not contain path separators or parent directory references')
+  }
   ensureDir()
   const id = crypto.randomUUID()
   const taskDir = path.join(ARTIFACTS_DIR, taskId)
@@ -37,7 +41,7 @@ export function getArtifact(id: string): { name: string; content: string; type: 
   return { name: row.name, content, type: row.type }
 }
 
-export function getArtifactsByTask(taskId: string): any[] {
+export function getArtifactsByTask(taskId: string): Pick<Artifact, 'id' | 'name' | 'type' | 'created_at'>[] {
   const db = getDb()
-  return db.prepare('SELECT id, name, type, created_at FROM artifacts WHERE task_id = ?').all(taskId)
+  return db.prepare('SELECT id, name, type, created_at FROM artifacts WHERE task_id = ?').all(taskId) as Pick<Artifact, 'id' | 'name' | 'type' | 'created_at'>[]
 }

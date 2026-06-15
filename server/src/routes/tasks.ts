@@ -7,6 +7,9 @@ import {
   approveTask,
   rejectTask,
   retryTask,
+  submitForReview,
+  completeTask,
+  TASK_TYPE_CONFIG,
 } from '../services/task-runner'
 import { getArtifact, getArtifactsByTask } from '../services/artifact-store'
 
@@ -23,7 +26,7 @@ taskRoutes.get('/', (c) => {
 taskRoutes.post('/', async (c) => {
   const body = await c.req.json()
   if (!body.type) return c.json({ error: 'type is required' }, 400)
-  const validTypes = ['requirement-analysis', 'testcase-generation', 'script-conversion', 'execution-analysis', 'issue-triage']
+  const validTypes = Object.keys(TASK_TYPE_CONFIG)
   if (!validTypes.includes(body.type)) {
     return c.json({ error: `type must be one of: ${validTypes.join(', ')}` }, 400)
   }
@@ -62,6 +65,20 @@ taskRoutes.post('/:id/reject', (c) => {
 // 重试任务
 taskRoutes.post('/:id/retry', (c) => {
   const result = retryTask(c.req.param('id'))
+  if ('error' in result) return c.json({ error: result.error }, 400)
+  return c.json({ task: result })
+})
+
+// 提交审核（running → review，needsReview=true 的任务）
+taskRoutes.post('/:id/submit-review', (c) => {
+  const result = submitForReview(c.req.param('id'))
+  if ('error' in result) return c.json({ error: result.error }, 400)
+  return c.json({ task: result })
+})
+
+// 完成任务（running → completed，needsReview=false 的任务）
+taskRoutes.post('/:id/complete', (c) => {
+  const result = completeTask(c.req.param('id'))
   if ('error' in result) return c.json({ error: result.error }, 400)
   return c.json({ task: result })
 })

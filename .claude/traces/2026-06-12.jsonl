@@ -1,0 +1,28 @@
+{"ts":"2026-06-12T10:34:58.623Z","hook":"PostToolUse","cwd":"/Users/cooperd/Documents/Ai_code/AutoRuner4Test","tool":"Bash","cmd":"git init && git add docs/ && git commit -m \"docs: add design spec for AutoRuner4Test\"","exit":"0","out":""}
+{"ts":"2026-06-12T10:40:10.053Z","hook":"PreToolUse","cwd":"/Users/cooperd/Documents/Ai_code/AutoRuner4Test","tool":"Write"}
+{"ts":"2026-06-12T10:41:32.149Z","hook":"SubagentStop","cwd":"/Users/cooperd/Documents/Ai_code/AutoRuner4Test","agent":""}
+{"ts":"2026-06-12T10:41:32.221Z","hook":"SessionStart","cwd":"/Users/cooperd/Documents/Ai_code/AutoRuner4Test","session_id":"0cf9ef55-f942-4ef8-bf26-a87a4e1c8079"}
+{"ts":"2026-06-12T10:46:39.365Z","hook":"PreToolUse","cwd":"/Users/cooperd/Documents/Ai_code/AutoRuner4Test","tool":"Write"}
+{"ts":"2026-06-12T10:46:41.547Z","hook":"PostToolUse","cwd":"/Users/cooperd/Documents/Ai_code/AutoRuner4Test","tool":"Write","file":"/Users/cooperd/Documents/Ai_code/AutoRuner4Test/docs/superpowers/plans/2026-06-12-phase1-backend-core.md","out":""}
+{"ts":"2026-06-12T10:46:45.785Z","hook":"PreToolUse","cwd":"/Users/cooperd/Documents/Ai_code/AutoRuner4Test","tool":"Bash"}
+{"ts":"2026-06-12T10:46:46.791Z","hook":"PostToolUse","cwd":"/Users/cooperd/Documents/Ai_code/AutoRuner4Test","tool":"Bash","cmd":"git add docs/superpowers/plans/2026-06-12-phase1-backend-core.md && git commit -m \"docs: add Phase 1 backend core implementation plan\"","exit":"0","out":""}
+{"ts":"2026-06-12T10:50:53.380Z","hook":"PreToolUse","cwd":"/Users/cooperd/Documents/Ai_code/AutoRuner4Test","tool":"Write"}
+{"ts":"2026-06-12T10:50:53.453Z","hook":"PostToolUse","cwd":"/Users/cooperd/Documents/Ai_code/AutoRuner4Test","tool":"Write","file":"/Users/cooperd/Documents/Ai_code/AutoRuner4Test/docs/superpowers/plans/2026-06-12-phase2-frontend-mvp.md","out":""}
+{"ts":"2026-06-12T10:52:03.797Z","hook":"SubagentStop","cwd":"/Users/cooperd/Documents/Ai_code/AutoRuner4Test","agent":""}
+{"ts":"2026-06-12T10:52:03.854Z","hook":"SessionStart","cwd":"/Users/cooperd/Documents/Ai_code/AutoRuner4Test","session_id":"0cf9ef55-f942-4ef8-bf26-a87a4e1c8079"}
+{"ts":"2026-06-12T10:52:08.100Z","hook":"PreToolUse","cwd":"/Users/cooperd/Documents/Ai_code/AutoRuner4Test","tool":"Bash"}
+{"ts":"2026-06-12T10:52:08.258Z","hook":"PostToolUse","cwd":"/Users/cooperd/Documents/Ai_code/AutoRuner4Test","tool":"Bash","cmd":"git add docs/superpowers/plans/2026-06-12-phase2-frontend-mvp.md && git commit -m \"docs: add Phase 2 frontend MVP implementation plan\"","exit":"0","out":""}
+{"ts":"2026-06-12T10:57:35.726Z","hook":"PreToolUse","cwd":"/Users/cooperd/Documents/Ai_code/AutoRuner4Test","tool":"Write"}
+{"ts":"2026-06-12T10:57:35.817Z","hook":"PostToolUse","cwd":"/Users/cooperd/Documents/Ai_code/AutoRuner4Test","tool":"Write","file":"/Users/cooperd/Documents/Ai_code/AutoRuner4Test/docs/superpowers/plans/2026-06-12-phase3-extensions.md","out":""}
+{"ts":"2026-06-12T10:57:41.040Z","hook":"PreToolUse","cwd":"/Users/cooperd/Documents/Ai_code/AutoRuner4Test","tool":"Bash"}
+{"ts":"2026-06-12T10:57:41.184Z","hook":"PostToolUse","cwd":"/Users/cooperd/Documents/Ai_code/AutoRuner4Test","tool":"Bash","cmd":"git add docs/superpowers/plans/2026-06-12-phase3-extensions.md && git commit -m \"docs: add Phase 3 extensions implementation plan\"","exit":"0","out":""}
+{"ts":"2026-06-12T10:59:20.299Z","hook":"PreToolUse","cwd":"/Users/cooperd/Documents/Ai_code/AutoRuner4Test","tool":"Write"}
+{"ts":"2026-06-12T10:59:20.387Z","hook":"PostToolUse","cwd":"/Users/cooperd/Documents/Ai_code/AutoRuner4Test","tool":"Write","file":"/Users/cooperd/Documents/Ai_code/AutoRuner4Test/docs/superpowers/plans/2026-06-12-phase4-knowledge-deep.md","out":""}
+{"ts":"2026-06-12T11:00:35.351Z","hook":"SubagentStop","cwd":"/Users/cooperd/Documents/Ai_code/AutoRuner4Test","agent":""}
+{"ts":"2026-06-12T11:00:35.406Z","hook":"SessionStart","cwd":"/Users/cooperd/Documents/Ai_code/AutoRuner4Test","session_id":"0cf9ef55-f942-4ef8-bf26-a87a4e1c8079"}
+{"ts":"2026-06-12T11:02:19.253Z","hook":"PreToolUse","cwd":"/Users/cooperd/Documents/Ai_code/AutoRuner4Test","tool":"Write"}
+{"ts":"2026-06-12T11:02:19.332Z","hook":"PostToolUse","cwd":"/Users/cooperd/Documents/Ai_code/AutoRuner4Test","tool":"Write","file":"/Users/cooperd/Documents/Ai_code/AutoRuner4Test/docs/superpowers/plans/2026-06-12-phase5-production-hardening.md","out":""}
+{"ts":"2026-06-12T11:02:23.511Z","hook":"PreToolUse","cwd":"/Users/cooperd/Documents/Ai_code/AutoRuner4Test","tool":"Bash"}
+{"ts":"2026-06-12T11:02:23.656Z","hook":"PostToolUse","cwd":"/Users/cooperd/Documents/Ai_code/AutoRuner4Test","tool":"Bash","cmd":"git add docs/superpowers/plans/2026-06-12-phase4-knowledge-deep.md docs/superpowers/plans/2026-06-12-phase5-production-hardening.md && git commit -m \"docs: add Phase 4 knowledge deepening and Phase 5 production hardening plans\"","exit":"0","out":""}
+{"ts":"2026-06-12T11:02:31.469Z","hook":"Stop","cwd":"/Users/cooperd/Documents/Ai_code/AutoRuner4Test","reason":""}
+{"ts":"2026-06-12T11:03:31.519Z","hook":"Notification","cwd":"/Users/cooperd/Documents/Ai_code/AutoRuner4Test","title":"","body":""}
