@@ -1,0 +1,32 @@
+{
+  "id": "skill-requirement-analysis",
+  "name": "requirement-analysis",
+  "type": "skill",
+  "version": "1.0.0",
+  "description": "解析需求文档，识别功能点、边界条件、隐含约束",
+  "author": "AutoRuner4Test",
+  "config_schema": {
+    "type": "object",
+    "properties": {
+      "max_function_points": {
+        "type": "number",
+        "title": "最大功能点数",
+        "default": 50,
+        "description": "单次分析识别的功能点上限"
+      },
+      "include_implicit_constraints": {
+        "type": "boolean",
+        "title": "识别隐含约束",
+        "default": true,
+        "description": "是否分析需求文档中未显式声明的约束条件"
+      },
+      "output_format": {
+        "type": "string",
+        "title": "输出格式",
+        "enum": ["structured", "narrative"],
+        "default": "structured"
+      }
+    }
+  },
+  "dependencies": []
+}
