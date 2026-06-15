@@ -5,7 +5,9 @@ import { componentRoutes } from './routes/components'
 import { taskRoutes } from './routes/tasks'
 import { knowledgeRoutes } from './routes/knowledge'
 import authRoutes from './routes/auth'
+import healthRoutes from './routes/health'
 import { authMiddleware } from './middleware/auth'
+import { rateLimitMiddleware } from './middleware/rate-limit'
 import { createWorker } from './queue/worker'
 import { addClient, removeClient, handleSubscription } from './ws/handler'
 import { moduleLogger } from './services/logger'
@@ -23,11 +25,14 @@ app.onError((err, c) => {
 
 app.get('/', (c) => c.json({ name: 'autoruner4test', version: '0.1.0' }))
 
+// 健康检查（不需要鉴权和限流）
+app.route('/health', healthRoutes)
+
 // 鉴权路由（不需要 auth 中间件）
 app.route('/api/auth', authRoutes)
 
-// 健康检查也不需要鉴权
-app.get('/api/health', (c) => c.json({ status: 'ok' }))
+// 限流应用到所有 API
+app.use('/api/*', rateLimitMiddleware)
 
 // API 鉴权中间件（在 auth 路由之后注册，不影响 /api/auth/*）
 app.use('/api/*', authMiddleware)
