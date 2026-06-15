@@ -1,0 +1,25 @@
+{
+  "id": "mcp-defect",
+  "name": "defect-mcp",
+  "type": "mcp",
+  "version": "1.0.0",
+  "description": "对接 Jira/Tapd，创建/更新缺陷单",
+  "author": "AutoRuner4Test",
+  "config_schema": {
+    "type": "object",
+    "properties": {
+      "system": {
+        "type": "string",
+        "title": "缺陷系统",
+        "enum": ["jira", "tapd"],
+        "default": "jira"
+      },
+      "url": { "type": "string", "title": "服务地址" },
+      "token": { "type": "string", "title": "API Token" },
+      "project_key": { "type": "string", "title": "项目 Key" }
+    },
+    "required": ["system", "url", "token", "project_key"]
+  },
+  "dependencies": [],
+  "transport": "stdio"
+}

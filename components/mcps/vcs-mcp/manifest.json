@@ -1,0 +1,25 @@
+{
+  "id": "mcp-vcs",
+  "name": "vcs-mcp",
+  "type": "mcp",
+  "version": "1.0.0",
+  "description": "脚本版本管理，Git 操作",
+  "author": "AutoRuner4Test",
+  "config_schema": {
+    "type": "object",
+    "properties": {
+      "repo_path": {
+        "type": "string",
+        "title": "仓库路径",
+        "description": "脚本仓库本地路径"
+      },
+      "default_branch": {
+        "type": "string",
+        "title": "默认分支",
+        "default": "main"
+      }
+    }
+  },
+  "dependencies": [],
+  "transport": "stdio"
+}

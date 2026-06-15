@@ -1,0 +1,8 @@
+{
+  "name": "defect-mcp",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": { "build": "tsc", "start": "node dist/index.js" },
+  "dependencies": { "@modelcontextprotocol/sdk": "^1.0.0" },
+  "devDependencies": { "typescript": "^5.0.0", "@types/node": "^20.0.0" }
+}

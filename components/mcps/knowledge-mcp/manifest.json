@@ -1,0 +1,21 @@
+{
+  "id": "mcp-knowledge",
+  "name": "knowledge-mcp",
+  "type": "mcp",
+  "version": "1.0.0",
+  "description": "知识库 CRUD + 语义检索",
+  "author": "AutoRuner4Test",
+  "config_schema": {
+    "type": "object",
+    "properties": {
+      "vault_path": {
+        "type": "string",
+        "title": "知识库路径",
+        "default": "/data/knowledge",
+        "description": "Obsidian vault 格式的知识库目录"
+      }
+    }
+  },
+  "dependencies": [],
+  "transport": "stdio"
+}
