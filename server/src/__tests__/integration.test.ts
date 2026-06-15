@@ -1,13 +1,20 @@
 // Set env vars BEFORE importing modules that read them at module level
+import fs from 'fs'
+import path from 'path'
+import os from 'os'
+
+const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'autoruner-test-'))
 process.env.DB_PATH = ':memory:'
-process.env.KNOWLEDGE_DIR = require('fs').mkdtempSync(require('path').join(require('os').tmpdir(), 'autoruner-test-'))
+process.env.KNOWLEDGE_DIR = path.join(tmpDir, 'knowledge')
 
 import { describe, test, expect, beforeAll, afterAll } from 'bun:test'
 import { getDb, closeDb } from '../db/client'
 import { migrate } from '../db/migrate'
 import { installComponent, listComponents, uninstallComponent } from '../services/component-registry'
-import { createTask, getTask, startTask, approveTask, rejectTask, retryTask } from '../services/task-runner'
+import { createTask, startTask, approveTask, rejectTask, retryTask } from '../services/task-runner'
 import { createKnowledge, searchKnowledge } from '../services/knowledge-store'
+
+// All tests share one in-memory DB; use descriptive assertions instead of exact counts
 
 describe('Integration: Component Registry', () => {
   beforeAll(() => {
@@ -19,8 +26,9 @@ describe('Integration: Component Registry', () => {
   })
 
   test('install and list components', () => {
+    const beforeCount = listComponents('skill').length
     const comp = installComponent({
-      name: 'requirement-analysis',
+      name: 'requirement-analysis-test',
       type: 'skill',
       source: './skills/requirement-analysis',
       description: '解析需求文档',
@@ -28,33 +36,33 @@ describe('Integration: Component Registry', () => {
     expect(comp.id).toBeDefined()
     expect(comp.installed).toBe(1)
 
-    const all = listComponents()
-    expect(all.length).toBe(1)
+    const afterAll = listComponents()
+    expect(afterAll.length).toBe(beforeCount + 1)
 
     const skills = listComponents('skill')
-    expect(skills.length).toBe(1)
+    expect(skills.length).toBe(beforeCount + 1)
+    expect(skills.some(s => s.name === 'requirement-analysis-test')).toBe(true)
   })
 
   test('uninstall component', () => {
-    const comps = listComponents()
-    const id = comps[0].id
-    const ok = uninstallComponent(id)
+    const comp = installComponent({
+      name: 'hook-test-uninstall',
+      type: 'hook',
+      source: './hooks/test',
+      description: '测试卸载',
+    })
+    const beforeInstalled = listComponents(undefined, true).length
+
+    const ok = uninstallComponent(comp.id)
     expect(ok).toBe(true)
 
-    const updated = listComponents(undefined, true)
-    expect(updated.length).toBe(0)
+    const afterInstalled = listComponents(undefined, true)
+    expect(afterInstalled.length).toBe(beforeInstalled - 1)
+    expect(afterInstalled.some(c => c.id === comp.id)).toBe(false)
   })
 })
 
 describe('Integration: Task lifecycle', () => {
-  beforeAll(() => {
-    migrate()
-  })
-
-  afterAll(() => {
-    closeDb()
-  })
-
   test('create -> start -> review -> approve -> completed', () => {
     const task = createTask({ type: 'requirement-analysis' })
     expect(task.status).toBe('pending')
@@ -90,25 +98,23 @@ describe('Integration: Task lifecycle', () => {
 })
 
 describe('Integration: Knowledge base', () => {
-  beforeAll(() => {
-    migrate()
-  })
-
-  afterAll(() => {
-    closeDb()
-  })
-
   test('create and search knowledge', () => {
+    const uniqueTitle = `登录边界值测试_${Date.now()}`
     const item = createKnowledge({
       type: 'lesson',
-      title: '登录接口边界值',
+      title: uniqueTitle,
       content: '密码长度边界需测试0、1、6、7、128字符',
       tags: ['login', 'boundary'],
     })
     expect(item.id).toBeDefined()
 
-    const results = searchKnowledge('登录')
-    expect(results.length).toBe(1)
-    expect(results[0].title).toBe('登录接口边界值')
+    const results = searchKnowledge(uniqueTitle)
+    expect(results.length).toBeGreaterThanOrEqual(1)
+    expect(results.some(r => r.title === uniqueTitle)).toBe(true)
   })
+})
+
+afterAll(() => {
+  closeDb()
+  fs.rmSync(tmpDir, { recursive: true, force: true })
 })
