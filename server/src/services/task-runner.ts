@@ -1,5 +1,6 @@
 import { getDb } from '../db/client'
 import type { Task } from '../db/schema'
+import { broadcast } from '../ws/handler'
 
 const TASK_TYPE_CONFIG: Record<string, { needsReview: boolean; description: string }> = {
   'requirement-analysis': { needsReview: true, description: '需求分析' },
@@ -81,6 +82,10 @@ export function transitionTask(id: string, newStatus: Task['status']): Task | { 
   const db = getDb()
   db.prepare('UPDATE tasks SET status = ?, updated_at = ? WHERE id = ?')
     .run(newStatus, new Date().toISOString(), id)
+  broadcast('task:status-changed', id, { from: task.status, to: newStatus })
+  if (newStatus === 'review') {
+    broadcast('task:review-requested', id, { task: getTask(id) })
+  }
   const updated = getTask(id)
   if (!updated) return { error: 'Failed to retrieve updated task' }
   return updated
