@@ -1,0 +1,21 @@
+{
+  "id": "hook-review-request",
+  "name": "review-request-hook",
+  "type": "hook",
+  "version": "1.0.0",
+  "description": "任务到达确认节点时通知前端等待人工确认",
+  "author": "AutoRuner4Test",
+  "config_schema": {
+    "type": "object",
+    "properties": {
+      "auto_highlight": {
+        "type": "boolean",
+        "title": "自动高亮",
+        "default": true,
+        "description": "在 Dashboard 自动高亮待确认任务"
+      }
+    }
+  },
+  "dependencies": [],
+  "events": ["task:status-changed"]
+}

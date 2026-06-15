@@ -1,0 +1,20 @@
+{
+  "id": "hook-task-state",
+  "name": "task-state-hook",
+  "type": "hook",
+  "version": "1.0.0",
+  "description": "任务状态变更时更新数据库并通知前端",
+  "author": "AutoRuner4Test",
+  "config_schema": {
+    "type": "object",
+    "properties": {
+      "notify_frontend": {
+        "type": "boolean",
+        "title": "通知前端",
+        "default": true
+      }
+    }
+  },
+  "dependencies": [],
+  "events": ["task:status-changed"]
+}

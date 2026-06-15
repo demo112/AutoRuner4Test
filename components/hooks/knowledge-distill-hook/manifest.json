@@ -1,0 +1,21 @@
+{
+  "id": "hook-knowledge-distill",
+  "name": "knowledge-distill-hook",
+  "type": "hook",
+  "version": "1.0.0",
+  "description": "检查未蒸馏痕迹数量，达阈值提醒知识沉淀",
+  "author": "AutoRuner4Test",
+  "config_schema": {
+    "type": "object",
+    "properties": {
+      "threshold": {
+        "type": "number",
+        "title": "提醒阈值",
+        "default": 5,
+        "description": "未蒸馏痕迹达到此数量时提醒"
+      }
+    }
+  },
+  "dependencies": [],
+  "events": ["artifact:created"]
+}
