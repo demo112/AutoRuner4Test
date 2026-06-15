@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Layout from './components/Layout'
 import ComponentRegistry from './pages/ComponentRegistry'
 import TaskManager from './pages/TaskManager'
@@ -10,7 +10,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route element={<Layout />}>
-          <Route path="/" element={<Dashboard />} />
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/components" element={<ComponentRegistry />} />
           <Route path="/tasks" element={<TaskManager />} />
           <Route path="/dashboard" element={<Dashboard />} />
