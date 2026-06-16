@@ -1,11 +1,13 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import { Package, ListTodo, Monitor, BookOpen } from 'lucide-react'
+import { Package, ListTodo, Monitor, BookOpen, GitBranch, Play } from 'lucide-react'
 
 const navItems = [
   { to: '/components', label: '组件市场', icon: Package },
   { to: '/tasks', label: '任务管理', icon: ListTodo },
   { to: '/dashboard', label: '运行监控', icon: Monitor },
   { to: '/knowledge', label: '知识库', icon: BookOpen },
+  { to: '/pipeline-templates', label: '流程模板', icon: GitBranch },
+  { to: '/pipeline-runs', label: '流程运行', icon: Play },
 ]
 
 export default function Layout() {

@@ -7,6 +7,8 @@ import {
   CREATE_KNOWLEDGE_LINKS_TABLE,
   CREATE_USERS_TABLE,
   CREATE_CREDENTIALS_TABLE,
+  CREATE_PIPELINE_TEMPLATES_TABLE,
+  CREATE_PIPELINE_RUNS_TABLE,
 } from './schema'
 import { moduleLogger } from '../services/logger'
 
@@ -21,5 +23,7 @@ export function migrate(): void {
   db.exec(CREATE_KNOWLEDGE_LINKS_TABLE)
   db.exec(CREATE_USERS_TABLE)
   db.exec(CREATE_CREDENTIALS_TABLE)
+  db.exec(CREATE_PIPELINE_TEMPLATES_TABLE)
+  db.exec(CREATE_PIPELINE_RUNS_TABLE)
   log.info('Database migration complete')
 }

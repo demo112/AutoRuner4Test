@@ -127,6 +127,91 @@ CREATE TABLE IF NOT EXISTS users (
 )
 `
 
+export interface PipelineNode {
+  id: string
+  name: string
+  component_id: string
+  component_type: 'skill' | 'mcp' | 'hook' | 'rule'
+  params: Record<string, unknown>
+  needs_confirmation: boolean
+  param_mapping: Record<string, string>
+}
+
+export interface PipelineEdge {
+  from: string
+  to: string
+  condition: 'success' | 'failure' | 'always'
+}
+
+export interface PipelineTemplate {
+  id: string
+  name: string
+  description: string
+  nodes: PipelineNode[]
+  edges: PipelineEdge[]
+  is_public: boolean
+  created_by: string
+  version: number
+  created_at: string
+  updated_at: string | null
+}
+
+export interface NodeState {
+  status: 'pending' | 'ready' | 'running' | 'completed' | 'failed' | 'waiting_confirmation' | 'done'
+  started_at: string | null
+  completed_at: string | null
+  outputs: Record<string, unknown>
+  error: string | null
+  execution_log: string | null
+}
+
+export interface PipelineRun {
+  id: string
+  template_id: string
+  template_version: number
+  status: 'pending' | 'running' | 'paused' | 'completed' | 'failed' | 'cancelled'
+  context: Record<string, unknown>
+  node_states: Record<string, NodeState>
+  current_nodes: string[]
+  initial_input: Record<string, unknown>
+  started_at: string | null
+  completed_at: string | null
+  created_by: string
+  created_at: string
+}
+
+export const CREATE_PIPELINE_TEMPLATES_TABLE = `
+CREATE TABLE IF NOT EXISTS pipeline_templates (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  description TEXT DEFAULT '',
+  nodes TEXT NOT NULL DEFAULT '[]',
+  edges TEXT NOT NULL DEFAULT '[]',
+  is_public INTEGER DEFAULT 0,
+  created_by TEXT NOT NULL,
+  version INTEGER DEFAULT 1,
+  created_at TEXT DEFAULT (datetime('now')),
+  updated_at TEXT
+)
+`
+
+export const CREATE_PIPELINE_RUNS_TABLE = `
+CREATE TABLE IF NOT EXISTS pipeline_runs (
+  id TEXT PRIMARY KEY,
+  template_id TEXT NOT NULL REFERENCES pipeline_templates(id),
+  template_version INTEGER DEFAULT 1,
+  status TEXT NOT NULL DEFAULT 'pending',
+  context TEXT DEFAULT '{}',
+  node_states TEXT DEFAULT '{}',
+  current_nodes TEXT DEFAULT '[]',
+  initial_input TEXT DEFAULT '{}',
+  started_at TEXT,
+  completed_at TEXT,
+  created_by TEXT NOT NULL,
+  created_at TEXT DEFAULT (datetime('now'))
+)
+`
+
 export const CREATE_CREDENTIALS_TABLE = `
 CREATE TABLE IF NOT EXISTS credentials (
   id TEXT PRIMARY KEY,

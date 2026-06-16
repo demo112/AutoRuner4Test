@@ -5,6 +5,8 @@ import TaskManager from './pages/TaskManager'
 import TaskDetail from './pages/TaskDetail'
 import Dashboard from './pages/Dashboard'
 import KnowledgeBase from './pages/KnowledgeBase'
+import PipelineTemplates from './pages/PipelineTemplates'
+import PipelineRuns from './pages/PipelineRuns'
 
 export default function App() {
   return (
@@ -17,6 +19,8 @@ export default function App() {
           <Route path="/tasks/:id" element={<TaskDetail />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/knowledge" element={<KnowledgeBase />} />
+          <Route path="/pipeline-templates" element={<PipelineTemplates />} />
+          <Route path="/pipeline-runs" element={<PipelineRuns />} />
         </Route>
       </Routes>
     </BrowserRouter>

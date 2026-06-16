@@ -49,4 +49,21 @@ export const api = {
     recommend: (type: string, tags: string[]) => request<{ recommendations: any[] }>(`/knowledge/recommend?type=${type}&tags=${tags.join(',')}`),
     buildGraph: () => request<{ links_created: number }>('/knowledge/graph/build', { method: 'POST' }),
   },
+  pipelineTemplates: {
+    list: () => request<any[]>('/pipeline-templates'),
+    get: (id: string) => request<any>(`/pipeline-templates/${id}`),
+    create: (data: any) => request<any>('/pipeline-templates', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id: string, data: any) => request<any>(`/pipeline-templates/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    delete: (id: string) => request<{ success: boolean }>(`/pipeline-templates/${id}`, { method: 'DELETE' }),
+  },
+  pipelineRuns: {
+    list: () => request<any[]>('/pipeline-runs'),
+    get: (id: string) => request<any>(`/pipeline-runs/${id}`),
+    create: (data: any) => request<any>('/pipeline-runs', { method: 'POST', body: JSON.stringify(data) }),
+    start: (id: string) => request<any>(`/pipeline-runs/${id}/start`, { method: 'POST' }),
+    confirm: (id: string, nodeId: string, approved: boolean, comment?: string) =>
+      request<{ success: boolean }>(`/pipeline-runs/${id}/confirm/${nodeId}`, { method: 'POST', body: JSON.stringify({ approved, comment }) }),
+    cancel: (id: string) => request<{ success: boolean }>(`/pipeline-runs/${id}/cancel`, { method: 'POST' }),
+    retry: (id: string, nodeId: string) => request<{ success: boolean }>(`/pipeline-runs/${id}/retry/${nodeId}`, { method: 'POST' }),
+  },
 }
