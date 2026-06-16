@@ -270,7 +270,6 @@ export async function resumeRun(runId: string): Promise<void> {
   const db = getDb()
   const row = db.prepare('SELECT * FROM pipeline_runs WHERE id = ?').get(runId) as Record<string, unknown> | undefined
   if (!row || row.status !== 'paused') return
-  updateRunStatus(runId, 'running')
   broadcast('pipeline:run:updated', runId, { status: 'running' })
   await executeRun(runId)
 }
