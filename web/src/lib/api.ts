@@ -49,21 +49,49 @@ export const api = {
     recommend: (type: string, tags: string[]) => request<{ recommendations: any[] }>(`/knowledge/recommend?type=${type}&tags=${tags.join(',')}`),
     buildGraph: () => request<{ links_created: number }>('/knowledge/graph/build', { method: 'POST' }),
   },
-  pipelineTemplates: {
-    list: () => request<any[]>('/pipeline-templates'),
-    get: (id: string) => request<any>(`/pipeline-templates/${id}`),
-    create: (data: any) => request<any>('/pipeline-templates', { method: 'POST', body: JSON.stringify(data) }),
-    update: (id: string, data: any) => request<any>(`/pipeline-templates/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-    delete: (id: string) => request<{ success: boolean }>(`/pipeline-templates/${id}`, { method: 'DELETE' }),
+  workspaceTemplates: {
+    list: (publicOnly = false) =>
+      fetch(`/api/workspace-templates${publicOnly ? '?public=true' : ''}`).then(r => r.json()),
+    get: (id: string) =>
+      fetch(`/api/workspace-templates/${id}`).then(r => r.json()),
+    create: (data: any) =>
+      fetch('/api/workspace-templates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      }).then(r => r.json()),
+    update: (id: string, data: any) =>
+      fetch(`/api/workspace-templates/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      }).then(r => r.json()),
+    delete: (id: string) =>
+      fetch(`/api/workspace-templates/${id}`, { method: 'DELETE' }).then(r => r.json()),
   },
-  pipelineRuns: {
-    list: () => request<any[]>('/pipeline-runs'),
-    get: (id: string) => request<any>(`/pipeline-runs/${id}`),
-    create: (data: any) => request<any>('/pipeline-runs', { method: 'POST', body: JSON.stringify(data) }),
-    start: (id: string) => request<any>(`/pipeline-runs/${id}/start`, { method: 'POST' }),
-    confirm: (id: string, nodeId: string, approved: boolean, comment?: string) =>
-      request<{ success: boolean }>(`/pipeline-runs/${id}/confirm/${nodeId}`, { method: 'POST', body: JSON.stringify({ approved, comment }) }),
-    cancel: (id: string) => request<{ success: boolean }>(`/pipeline-runs/${id}/cancel`, { method: 'POST' }),
-    retry: (id: string, nodeId: string) => request<{ success: boolean }>(`/pipeline-runs/${id}/retry/${nodeId}`, { method: 'POST' }),
+
+  workspaceSessions: {
+    list: () =>
+      fetch('/api/workspace-sessions').then(r => r.json()),
+    get: (id: string) =>
+      fetch(`/api/workspace-sessions/${id}`).then(r => r.json()),
+    create: (data: any) =>
+      fetch('/api/workspace-sessions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      }).then(r => r.json()),
+    start: (id: string) =>
+      fetch(`/api/workspace-sessions/${id}/start`, { method: 'POST' }).then(r => r.json()),
+    review: (id: string, stageId: string, approved: boolean, comment?: string) =>
+      fetch(`/api/workspace-sessions/${id}/review/${stageId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ approved, comment }),
+      }).then(r => r.json()),
+    retry: (id: string, stageId: string) =>
+      fetch(`/api/workspace-sessions/${id}/retry/${stageId}`, { method: 'POST' }).then(r => r.json()),
+    cancel: (id: string) =>
+      fetch(`/api/workspace-sessions/${id}/cancel`, { method: 'POST' }).then(r => r.json()),
   },
 }
