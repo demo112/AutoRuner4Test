@@ -32,6 +32,7 @@ interface AppState {
   loadingPipelineRuns: boolean
   fetchPipelineRuns: () => Promise<void>
   updatePipelineRun: (runId: string, patch: Partial<any>) => void
+}
 
 export const useStore = create<AppState>((set) => ({
   // Components
