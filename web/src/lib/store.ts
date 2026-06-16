@@ -21,7 +21,17 @@ interface AppState {
   knowledgeItems: any[]
   loadingKnowledge: boolean
   fetchKnowledge: (type?: string) => Promise<void>
-}
+
+  // Pipeline Templates
+  pipelineTemplates: any[]
+  loadingPipelineTemplates: boolean
+  fetchPipelineTemplates: () => Promise<void>
+
+  // Pipeline Runs
+  pipelineRuns: any[]
+  loadingPipelineRuns: boolean
+  fetchPipelineRuns: () => Promise<void>
+  updatePipelineRun: (runId: string, patch: Partial<any>) => void
 
 export const useStore = create<AppState>((set) => ({
   // Components
@@ -70,5 +80,36 @@ export const useStore = create<AppState>((set) => ({
     } finally {
       set({ loadingKnowledge: false })
     }
+  },
+
+  // Pipeline Templates
+  pipelineTemplates: [],
+  loadingPipelineTemplates: false,
+  fetchPipelineTemplates: async () => {
+    set({ loadingPipelineTemplates: true })
+    try {
+      const templates = await api.pipelineTemplates.list()
+      set({ pipelineTemplates: Array.isArray(templates) ? templates : [] })
+    } finally {
+      set({ loadingPipelineTemplates: false })
+    }
+  },
+
+  // Pipeline Runs
+  pipelineRuns: [],
+  loadingPipelineRuns: false,
+  fetchPipelineRuns: async () => {
+    set({ loadingPipelineRuns: true })
+    try {
+      const runs = await api.pipelineRuns.list()
+      set({ pipelineRuns: Array.isArray(runs) ? runs : [] })
+    } finally {
+      set({ loadingPipelineRuns: false })
+    }
+  },
+  updatePipelineRun: (runId, patch) => {
+    set((state) => ({
+      pipelineRuns: state.pipelineRuns.map(r => r.id === runId ? { ...r, ...patch } : r),
+    }))
   },
 }))
