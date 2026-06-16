@@ -51,3 +51,21 @@ export function broadcast(event: string, taskId: string, data: any): void {
 export function getClientCount(): number {
   return clients.size
 }
+
+// --- Workspace session broadcast helpers ---
+
+export function broadcastStageChanged(sessionId: string, stageId: string, status: string): void {
+  broadcast('session:stage-changed', sessionId, { sessionId, stageId, status })
+}
+
+export function broadcastReviewNeeded(sessionId: string, stageId: string, output: unknown): void {
+  broadcast('session:review-needed', sessionId, { sessionId, stageId, output })
+}
+
+export function broadcastSessionCompleted(sessionId: string): void {
+  broadcast('session:completed', sessionId, { sessionId })
+}
+
+export function broadcastSessionFailed(sessionId: string, stageId: string, error: string): void {
+  broadcast('session:failed', sessionId, { sessionId, stageId, error })
+}

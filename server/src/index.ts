@@ -10,8 +10,8 @@ import { authMiddleware } from './middleware/auth'
 import { rateLimitMiddleware } from './middleware/rate-limit'
 import { createWorker } from './queue/worker'
 import { addClient, removeClient, handleSubscription } from './ws/handler'
-import { pipelineTemplateRoutes } from './routes/pipeline-templates'
-import { pipelineRunRoutes } from './routes/pipeline-runs'
+import { workspaceTemplateRoutes } from './routes/workspace-templates'
+import { workspaceSessionRoutes } from './routes/workspace-sessions'
 import { moduleLogger } from './services/logger'
 
 const log = moduleLogger('server')
@@ -42,8 +42,8 @@ app.use('/api/*', authMiddleware)
 app.route('/api/components', componentRoutes)
 app.route('/api/tasks', taskRoutes)
 app.route('/api/knowledge', knowledgeRoutes)
-app.route('/api/pipeline-templates', pipelineTemplateRoutes)
-app.route('/api/pipeline-runs', pipelineRunRoutes)
+app.route('/api/workspace-templates', workspaceTemplateRoutes)
+app.route('/api/workspace-sessions', workspaceSessionRoutes)
 
 // 启动时迁移
 migrate()

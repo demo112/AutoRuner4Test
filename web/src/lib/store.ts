@@ -22,16 +22,16 @@ interface AppState {
   loadingKnowledge: boolean
   fetchKnowledge: (type?: string) => Promise<void>
 
-  // Pipeline Templates
-  pipelineTemplates: any[]
-  loadingPipelineTemplates: boolean
-  fetchPipelineTemplates: () => Promise<void>
+  // Workspace Templates
+  workspaceTemplates: any[]
+  loadingWorkspaceTemplates: boolean
+  fetchWorkspaceTemplates: (publicOnly?: boolean) => Promise<void>
 
-  // Pipeline Runs
-  pipelineRuns: any[]
-  loadingPipelineRuns: boolean
-  fetchPipelineRuns: () => Promise<void>
-  updatePipelineRun: (runId: string, patch: Partial<any>) => void
+  // Workspace Sessions
+  workspaceSessions: any[]
+  loadingWorkspaceSessions: boolean
+  fetchWorkspaceSessions: () => Promise<void>
+  updateWorkspaceSession: (sessionId: string, patch: Partial<any>) => void
 }
 
 export const useStore = create<AppState>((set) => ({
@@ -83,34 +83,34 @@ export const useStore = create<AppState>((set) => ({
     }
   },
 
-  // Pipeline Templates
-  pipelineTemplates: [],
-  loadingPipelineTemplates: false,
-  fetchPipelineTemplates: async () => {
-    set({ loadingPipelineTemplates: true })
+  // Workspace Templates
+  workspaceTemplates: [],
+  loadingWorkspaceTemplates: false,
+  fetchWorkspaceTemplates: async (publicOnly = false) => {
+    set({ loadingWorkspaceTemplates: true })
     try {
-      const templates = await api.pipelineTemplates.list()
-      set({ pipelineTemplates: Array.isArray(templates) ? templates : [] })
+      const { templates } = await api.workspaceTemplates.list(publicOnly)
+      set({ workspaceTemplates: Array.isArray(templates) ? templates : [] })
     } finally {
-      set({ loadingPipelineTemplates: false })
+      set({ loadingWorkspaceTemplates: false })
     }
   },
 
-  // Pipeline Runs
-  pipelineRuns: [],
-  loadingPipelineRuns: false,
-  fetchPipelineRuns: async () => {
-    set({ loadingPipelineRuns: true })
+  // Workspace Sessions
+  workspaceSessions: [],
+  loadingWorkspaceSessions: false,
+  fetchWorkspaceSessions: async () => {
+    set({ loadingWorkspaceSessions: true })
     try {
-      const runs = await api.pipelineRuns.list()
-      set({ pipelineRuns: Array.isArray(runs) ? runs : [] })
+      const { sessions } = await api.workspaceSessions.list()
+      set({ workspaceSessions: Array.isArray(sessions) ? sessions : [] })
     } finally {
-      set({ loadingPipelineRuns: false })
+      set({ loadingWorkspaceSessions: false })
     }
   },
-  updatePipelineRun: (runId, patch) => {
+  updateWorkspaceSession: (sessionId, patch) => {
     set((state) => ({
-      pipelineRuns: state.pipelineRuns.map(r => r.id === runId ? { ...r, ...patch } : r),
+      workspaceSessions: state.workspaceSessions.map(s => s.id === sessionId ? { ...s, ...patch } : s),
     }))
   },
 }))
