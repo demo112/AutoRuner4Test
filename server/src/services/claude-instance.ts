@@ -215,3 +215,112 @@ export function cleanupCompleted(): number {
   }
   return count
 }
+
+// ── V2: Workspace .claude/ directory assembly ─────────
+
+export function assembleWorkspaceClaudeDir(
+  workDir: string,
+  template: { claude_md: string; skills: Array<{ component_id: string }>; hooks: Array<{ event: string; matcher?: string; command: string }>; mcp_servers: Array<{ name: string; command: string; args?: string[]; env?: Record<string, string> }>; rules: Array<{ component_id: string }> },
+  componentResolver?: (componentId: string) => { type: string; content: string; file_name?: string } | null
+): void {
+  const claudeDir = path.join(workDir, '.claude')
+  fs.mkdirSync(claudeDir, { recursive: true })
+
+  // CLAUDE.md — write directly from template
+  fs.writeFileSync(path.join(claudeDir, 'CLAUDE.md'), template.claude_md, 'utf-8')
+
+  // Skills — copy from component registry if resolver provided
+  if (template.skills.length > 0 && componentResolver) {
+    const skillsDir = path.join(claudeDir, 'skills')
+    fs.mkdirSync(skillsDir, { recursive: true })
+    for (const skill of template.skills) {
+      const comp = componentResolver(skill.component_id)
+      if (comp && comp.type === 'skill') {
+        const fileName = comp.file_name || `${skill.component_id}.md`
+        fs.writeFileSync(path.join(skillsDir, fileName), comp.content, 'utf-8')
+      }
+    }
+  }
+
+  // Rules — copy from component registry if resolver provided
+  if (template.rules.length > 0 && componentResolver) {
+    const rulesDir = path.join(claudeDir, 'rules')
+    fs.mkdirSync(rulesDir, { recursive: true })
+    for (const rule of template.rules) {
+      const comp = componentResolver(rule.component_id)
+      if (comp && comp.type === 'rule') {
+        const fileName = comp.file_name || `${rule.component_id}.md`
+        fs.writeFileSync(path.join(rulesDir, fileName), comp.content, 'utf-8')
+      }
+    }
+  }
+
+  // settings.json — hooks + mcpServers
+  const settings: Record<string, unknown> = {}
+  if (template.hooks.length > 0) {
+    settings.hooks = {}
+    for (const hook of template.hooks) {
+      if (!settings.hooks[hook.event]) {
+        settings.hooks[hook.event] = []
+      }
+      ;(settings.hooks[hook.event] as Array<Record<string, unknown>>).push({
+        matcher: hook.matcher || '',
+        hooks: [{ type: 'command', command: hook.command }],
+      })
+    }
+  }
+  if (template.mcp_servers.length > 0) {
+    settings.mcpServers = {}
+    for (const mcp of template.mcp_servers) {
+      settings.mcpServers[mcp.name] = {
+        command: mcp.command,
+        ...(mcp.args && { args: mcp.args }),
+        ...(mcp.env && { env: mcp.env }),
+      }
+    }
+  }
+  if (Object.keys(settings).length > 0) {
+    fs.writeFileSync(path.join(claudeDir, 'settings.json'), JSON.stringify(settings, null, 2), 'utf-8')
+  }
+}
+
+// ── V2: Segment prompt construction ──────────────────
+
+export interface SegmentPromptParams {
+  claudeMd: string
+  input: Record<string, unknown>
+  context: Record<string, unknown>
+  segmentIndex: number
+  totalSegments: number
+  reviewFeedback?: { result: 'approved' | 'rejected'; comment: string } | null
+}
+
+export function buildSegmentPrompt(params: SegmentPromptParams): string {
+  const parts: string[] = []
+
+  parts.push('## 你的任务')
+  parts.push(params.claudeMd)
+  parts.push('')
+
+  parts.push('## 输入')
+  parts.push(JSON.stringify(params.input, null, 2))
+  parts.push('')
+
+  if (Object.keys(params.context).length > 0) {
+    parts.push('## 前序产出')
+    parts.push(JSON.stringify(params.context, null, 2))
+    parts.push('')
+  }
+
+  if (params.reviewFeedback && params.reviewFeedback.result === 'rejected') {
+    parts.push('## 审核反馈')
+    parts.push(`上一段产出被拒绝。原因：${params.reviewFeedback.comment}`)
+    parts.push('请根据反馈修改后重新产出。')
+    parts.push('')
+  }
+
+  parts.push(`## 执行进度`)
+  parts.push(`当前段 ${params.segmentIndex + 1}/${params.totalSegments}`)
+
+  return parts.join('\n')
+}
