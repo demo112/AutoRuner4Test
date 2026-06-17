@@ -1,5 +1,6 @@
 import { getDb } from './client'
 import {
+  DROP_V1_TABLES,
   CREATE_COMPONENTS_TABLE,
   CREATE_TASKS_TABLE,
   CREATE_ARTIFACTS_TABLE,
@@ -16,6 +17,7 @@ const log = moduleLogger('migrate')
 
 export function migrate(): void {
   const db = getDb()
+  db.exec(DROP_V1_TABLES)
   db.exec(CREATE_COMPONENTS_TABLE)
   db.exec(CREATE_TASKS_TABLE)
   db.exec(CREATE_ARTIFACTS_TABLE)
