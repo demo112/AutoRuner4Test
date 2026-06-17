@@ -1,59 +1,92 @@
 import { Hono } from 'hono'
 import * as sessionService from '../services/workspace-session-service.js'
+import * as executor from '../services/workspace-executor.js'
 
-const router = new Hono()
+export const workspaceSessionRoutes = new Hono()
 
-router.get('/', (c) => {
+// List all sessions
+workspaceSessionRoutes.get('/', (c) => {
   const sessions = sessionService.listSessions()
   return c.json({ sessions })
 })
 
-router.get('/:id', (c) => {
-  const session = sessionService.getSession(c.req.param('id'))
+// Get session detail (user view — strips internal state)
+workspaceSessionRoutes.get('/:id', (c) => {
+  const session = sessionService.getSessionForUser(c.req.param('id'))
   if (!session) return c.json({ error: 'Session not found' }, 404)
-  return c.json(session)
+  return c.json({ session })
 })
 
-router.post('/', async (c) => {
+// Create session from template
+workspaceSessionRoutes.post('/', async (c) => {
   const body = await c.req.json()
   if (!body.template_id) return c.json({ error: 'template_id is required' }, 400)
-  const session = sessionService.createSession(body)
-  if ('error' in session) return c.json({ error: session.error }, 400)
-  return c.json(session, 201)
+
+  try {
+    const session = sessionService.createSession({
+      template_id: body.template_id,
+      input: body.input,
+      created_by: body.created_by,
+    })
+    return c.json({ session }, 201)
+  } catch (err) {
+    return c.json({ error: (err as Error).message }, 400)
+  }
 })
 
-router.post('/:id/start', async (c) => {
-  const session = await sessionService.startSession(c.req.param('id'))
-  if (!session) return c.json({ error: 'Session not found or not pending' }, 404)
-  return c.json(session)
+// Start session execution
+workspaceSessionRoutes.post('/:id/start', (c) => {
+  const id = c.req.param('id')
+  try {
+    const session = sessionService.startSession(id)
+    if (!session) return c.json({ error: 'Session not found' }, 404)
+    // Fire-and-forget executor
+    executor.runSession(id)
+    return c.json({ session })
+  } catch (err) {
+    return c.json({ error: (err as Error).message }, 400)
+  }
 })
 
-router.post('/:id/review/:stageId', async (c) => {
+// Review gate (approve or reject)
+workspaceSessionRoutes.post('/:id/review/:gateId', async (c) => {
   const body = await c.req.json()
-  if (body.approved === undefined) return c.json({ error: 'approved is required' }, 400)
-  const session = await sessionService.reviewSessionStage(
-    c.req.param('id'),
-    c.req.param('stageId'),
-    body.approved,
-    body.comment,
-  )
-  if (!session) return c.json({ error: 'Session not found' }, 404)
-  return c.json(session)
+  const { id, gateId } = c.req.param()
+
+  if (!body.result || !['approved', 'rejected'].includes(body.result)) {
+    return c.json({ error: 'result must be "approved" or "rejected"' }, 400)
+  }
+
+  try {
+    await executor.continueAfterReview(id, gateId, body.result, body.comment || '')
+    const session = sessionService.getSessionForUser(id)
+    return c.json({ session })
+  } catch (err) {
+    return c.json({ error: (err as Error).message }, 400)
+  }
 })
 
-router.post('/:id/retry/:stageId', async (c) => {
-  const session = await sessionService.retrySessionStage(
-    c.req.param('id'),
-    c.req.param('stageId'),
-  )
-  if (!session) return c.json({ error: 'Session not found' }, 404)
-  return c.json(session)
+// Retry from failed gate
+workspaceSessionRoutes.post('/:id/retry/:gateId', (c) => {
+  const { id, gateId } = c.req.param()
+
+  try {
+    sessionService.retrySession(id, gateId)
+    executor.runSession(id)
+    const session = sessionService.getSessionForUser(id)
+    return c.json({ session })
+  } catch (err) {
+    return c.json({ error: (err as Error).message }, 400)
+  }
 })
 
-router.post('/:id/cancel', (c) => {
-  const session = sessionService.cancelSession(c.req.param('id'))
-  if (!session) return c.json({ error: 'Session not found or not cancellable' }, 404)
-  return c.json(session)
+// Cancel session
+workspaceSessionRoutes.post('/:id/cancel', (c) => {
+  try {
+    const session = sessionService.cancelSession(c.req.param('id'))
+    if (!session) return c.json({ error: 'Session not found' }, 404)
+    return c.json({ session })
+  } catch (err) {
+    return c.json({ error: (err as Error).message }, 400)
+  }
 })
-
-export const workspaceSessionRoutes = router

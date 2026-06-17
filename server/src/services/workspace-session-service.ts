@@ -1,5 +1,5 @@
 import { getDb } from '../db/client'
-import type { WorkspaceSession, ReviewRecord, SegmentState } from '../db/schema'
+import type { ParsedWorkspaceSession, ReviewRecord, SegmentState } from '../db/schema'
 import { getTemplate } from './workspace-template-service'
 import { moduleLogger } from './logger'
 
@@ -7,7 +7,7 @@ const log = moduleLogger('workspace-session-service')
 
 // ── List ──────────────────────────────────────────────
 
-export function listSessions(): WorkspaceSession[] {
+export function listSessions(): ParsedWorkspaceSession[] {
   const db = getDb()
   const rows = db.prepare('SELECT * FROM workspace_sessions ORDER BY created_at DESC').all() as Record<string, unknown>[]
   return rows.map(rowToSession)
@@ -15,7 +15,7 @@ export function listSessions(): WorkspaceSession[] {
 
 // ── Get (full) ────────────────────────────────────────
 
-export function getSession(id: string): WorkspaceSession | null {
+export function getSession(id: string): ParsedWorkspaceSession | null {
   const db = getDb()
   const row = db.prepare('SELECT * FROM workspace_sessions WHERE id = ?').get(id) as Record<string, unknown> | undefined
   return row ? rowToSession(row) : null
@@ -23,10 +23,10 @@ export function getSession(id: string): WorkspaceSession | null {
 
 // ── Get for User (strips internal state) ──────────────
 
-export function getSessionForUser(id: string): Omit<WorkspaceSession, 'segment_states' | 'context'> | null {
+export function getSessionForUser(id: string): Omit<ParsedWorkspaceSession, 'context'> | null {
   const session = getSession(id)
   if (!session) return null
-  const { segment_states, context, ...userView } = session
+  const { context, ...userView } = session
   return userView
 }
 
@@ -38,7 +38,7 @@ export interface CreateSessionInput {
   created_by?: string
 }
 
-export function createSession(input: CreateSessionInput): WorkspaceSession {
+export function createSession(input: CreateSessionInput): ParsedWorkspaceSession {
   const db = getDb()
   const template = getTemplate(input.template_id)
   if (!template) throw new Error('Template not found')
@@ -75,7 +75,7 @@ export function createSession(input: CreateSessionInput): WorkspaceSession {
 
 // ── Start ─────────────────────────────────────────────
 
-export function startSession(id: string): WorkspaceSession | null {
+export function startSession(id: string): ParsedWorkspaceSession | null {
   const db = getDb()
   const session = getSession(id)
   if (!session) return null
@@ -94,9 +94,9 @@ export function startSession(id: string): WorkspaceSession | null {
 
 export function updateSessionStatus(
   id: string,
-  status: WorkspaceSession['status'],
+  status: ParsedWorkspaceSession['status'],
   extra?: { current_gate?: string | null; output?: unknown; error?: string | null }
-): WorkspaceSession | null {
+): ParsedWorkspaceSession | null {
   const db = getDb()
   const session = getSession(id)
   if (!session) return null
@@ -121,7 +121,7 @@ export function updateSessionStatus(
   }
 
   values.push(id)
-  db.prepare(`UPDATE workspace_sessions SET ${updates.join(', ')} WHERE id = ?`).run(...values)
+  db.prepare(`UPDATE workspace_sessions SET ${updates.join(', ')} WHERE id = ?`).run(...values as [])
 
   return getSession(id)
 }
@@ -163,7 +163,7 @@ export function reviewSession(
   gateId: string,
   result: 'approved' | 'rejected',
   comment: string
-): WorkspaceSession | null {
+): ParsedWorkspaceSession | null {
   const db = getDb()
   const session = getSession(sessionId)
   if (!session) throw new Error('Session not found')
@@ -188,7 +188,7 @@ export function reviewSession(
 
 // ── Cancel ────────────────────────────────────────────
 
-export function cancelSession(id: string): WorkspaceSession | null {
+export function cancelSession(id: string): ParsedWorkspaceSession | null {
   const db = getDb()
   const session = getSession(id)
   if (!session) return null
@@ -242,12 +242,12 @@ export function retrySession(sessionId: string, gateId: string): void {
 
 // ── Row mapper ────────────────────────────────────────
 
-function rowToSession(row: Record<string, unknown>): WorkspaceSession {
+function rowToSession(row: Record<string, unknown>): ParsedWorkspaceSession {
   return {
     id: row.id as string,
     template_id: row.template_id as string,
     template_version: row.template_version as number,
-    status: row.status as WorkspaceSession['status'],
+    status: row.status as ParsedWorkspaceSession['status'],
     current_gate: (row.current_gate as string) || null,
     input: JSON.parse((row.input as string) || '{}'),
     output: row.output ? JSON.parse(row.output as string) : null,

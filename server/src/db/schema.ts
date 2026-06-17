@@ -218,6 +218,31 @@ export interface RuleRef {
   component_id: string
 }
 
+// 已解析的业务类型（rowToTemplate/rowToSession 返回值）
+
+export interface ParsedWorkspaceTemplate extends Omit<WorkspaceTemplate,
+  'skills' | 'hooks' | 'mcp_servers' | 'rules' | 'review_gates' | 'input_schema' | 'is_public' | 'is_starter'
+> {
+  skills: ComponentRef[]
+  hooks: HookConfig[]
+  mcp_servers: McpConfig[]
+  rules: RuleRef[]
+  review_gates: ReviewGate[]
+  input_schema: Record<string, unknown>
+  is_public: boolean
+  is_starter: boolean
+}
+
+export interface ParsedWorkspaceSession extends Omit<WorkspaceSession,
+  'input' | 'output' | 'review_history' | 'context' | 'segment_states'
+> {
+  input: Record<string, unknown>
+  output: unknown
+  review_history: ReviewRecord[]
+  context: Record<string, unknown>
+  segment_states: Record<string, SegmentState>
+}
+
 // === V2 SQL ===
 
 export const DROP_V1_TABLES = `

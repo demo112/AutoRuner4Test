@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { api } from './api'
+import { api, type WorkspaceTemplate, type WorkspaceSession } from './api'
 
 interface AppState {
   // Components
@@ -22,16 +22,16 @@ interface AppState {
   loadingKnowledge: boolean
   fetchKnowledge: (type?: string) => Promise<void>
 
-  // Workspace Templates
-  workspaceTemplates: any[]
+  // Workspace Templates V2
+  workspaceTemplates: WorkspaceTemplate[]
   loadingWorkspaceTemplates: boolean
-  fetchWorkspaceTemplates: (publicOnly?: boolean) => Promise<void>
+  fetchWorkspaceTemplates: (filters?: { category?: string; starter?: boolean }) => Promise<void>
 
-  // Workspace Sessions
-  workspaceSessions: any[]
+  // Workspace Sessions V2
+  workspaceSessions: WorkspaceSession[]
   loadingWorkspaceSessions: boolean
   fetchWorkspaceSessions: () => Promise<void>
-  updateWorkspaceSession: (sessionId: string, patch: Partial<any>) => void
+  updateWorkspaceSession: (sessionId: string, patch: Partial<WorkspaceSession>) => void
 }
 
 export const useStore = create<AppState>((set) => ({
@@ -83,20 +83,20 @@ export const useStore = create<AppState>((set) => ({
     }
   },
 
-  // Workspace Templates
+  // Workspace Templates V2
   workspaceTemplates: [],
   loadingWorkspaceTemplates: false,
-  fetchWorkspaceTemplates: async (publicOnly = false) => {
+  fetchWorkspaceTemplates: async (filters) => {
     set({ loadingWorkspaceTemplates: true })
     try {
-      const { templates } = await api.workspaceTemplates.list(publicOnly)
+      const { templates } = await api.workspaceTemplates.list(filters)
       set({ workspaceTemplates: Array.isArray(templates) ? templates : [] })
     } finally {
       set({ loadingWorkspaceTemplates: false })
     }
   },
 
-  // Workspace Sessions
+  // Workspace Sessions V2
   workspaceSessions: [],
   loadingWorkspaceSessions: false,
   fetchWorkspaceSessions: async () => {

@@ -1,12 +1,12 @@
 import { getDb } from '../db/client'
-import type { WorkspaceTemplate, ReviewGate } from '../db/schema'
+import type { ParsedWorkspaceTemplate } from '../db/schema'
 import { moduleLogger } from './logger'
 
 const log = moduleLogger('workspace-template-service')
 
 // ── List ──────────────────────────────────────────────
 
-export function listTemplates(filters?: { category?: string; starter?: boolean }): WorkspaceTemplate[] {
+export function listTemplates(filters?: { category?: string; starter?: boolean }): ParsedWorkspaceTemplate[] {
   const db = getDb()
   let sql = 'SELECT * FROM workspace_templates WHERE 1=1'
   const params: unknown[] = []
@@ -22,13 +22,13 @@ export function listTemplates(filters?: { category?: string; starter?: boolean }
 
   sql += ' ORDER BY created_at DESC'
 
-  const rows = db.prepare(sql).all(...params) as Record<string, unknown>[]
+  const rows = db.prepare(sql).all(...params as []) as Record<string, unknown>[]
   return rows.map(rowToTemplate)
 }
 
 // ── Get ───────────────────────────────────────────────
 
-export function getTemplate(id: string): WorkspaceTemplate | null {
+export function getTemplate(id: string): ParsedWorkspaceTemplate | null {
   const db = getDb()
   const row = db.prepare('SELECT * FROM workspace_templates WHERE id = ?').get(id) as Record<string, unknown> | undefined
   return row ? rowToTemplate(row) : null
@@ -53,7 +53,7 @@ export interface CreateTemplateInput {
   created_by?: string
 }
 
-export function createTemplate(input: CreateTemplateInput): WorkspaceTemplate {
+export function createTemplate(input: CreateTemplateInput): ParsedWorkspaceTemplate {
   const db = getDb()
   const id = `wt-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 
@@ -83,7 +83,7 @@ export function createTemplate(input: CreateTemplateInput): WorkspaceTemplate {
 
 // ── Update ────────────────────────────────────────────
 
-export function updateTemplate(id: string, fields: Record<string, unknown>): WorkspaceTemplate | null {
+export function updateTemplate(id: string, fields: Record<string, unknown>): ParsedWorkspaceTemplate | null {
   const db = getDb()
   const existing = getTemplate(id)
   if (!existing) return null
@@ -112,7 +112,7 @@ export function updateTemplate(id: string, fields: Record<string, unknown>): Wor
 
   values.push(id)
 
-  db.prepare(`UPDATE workspace_templates SET ${setClauses.join(', ')} WHERE id = ?`).run(...values)
+  db.prepare(`UPDATE workspace_templates SET ${setClauses.join(', ')} WHERE id = ?`).run(...values as [])
 
   return getTemplate(id)
 }
@@ -127,7 +127,7 @@ export function deleteTemplate(id: string): boolean {
 
 // ── Clone ─────────────────────────────────────────────
 
-export function cloneTemplate(id: string, createdBy?: string): WorkspaceTemplate | null {
+export function cloneTemplate(id: string, createdBy?: string): ParsedWorkspaceTemplate | null {
   const source = getTemplate(id)
   if (!source) return null
 
@@ -145,7 +145,7 @@ export function cloneTemplate(id: string, createdBy?: string): WorkspaceTemplate
     output_description: source.output_description,
     is_public: source.is_public ? 1 : 0,
     is_starter: 0, // Cloned templates are not starters
-    created_by: createdBy || null,
+    created_by: createdBy ?? undefined,
   })
 }
 
@@ -179,7 +179,7 @@ export function previewClaudeDir(id: string): { files: Array<{ path: string; con
 
 // ── Row mapper ────────────────────────────────────────
 
-function rowToTemplate(row: Record<string, unknown>): WorkspaceTemplate {
+function rowToTemplate(row: Record<string, unknown>): ParsedWorkspaceTemplate {
   return {
     id: row.id as string,
     name: row.name as string,
@@ -196,7 +196,7 @@ function rowToTemplate(row: Record<string, unknown>): WorkspaceTemplate {
     is_public: Boolean(row.is_public),
     is_starter: Boolean(row.is_starter),
     version: row.version as number,
-    created_by: row.created_by as string | null,
+    created_by: (row.created_by as string) || null,
     created_at: row.created_at as string,
     updated_at: row.updated_at as string | null,
   }

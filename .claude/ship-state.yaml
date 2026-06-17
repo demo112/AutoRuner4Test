@@ -1,0 +1,7 @@
+project: autoruner4test
+stage: "④复盘"
+retro_score: B
+retro_findings: "对外/内部字段边界要在设计阶段显式标注；service 暴露 user-view 时先列剥离清单并交叉验证前端依赖"
+requirement: "重新定义流程编排层：从 DAG 流程引擎改为 AI 工作环境模型。核心概念：工作环境模板（类似 Dockerfile，给 AI 的受控工作配置=角色+工具箱+过程+审核点+产出规范+约束规则）+ 工作会话（类似 Container，环境的一次实例化）。组件来源为 AIMarket 远程仓库。AI 在预设框架内自主决策，审核点硬性暂停不可跳过。现有 pipeline 代码需重新定义。"
+feature: workspace-orchestration
+feature_type: feature

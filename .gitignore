@@ -1,0 +1,5 @@
+.superpowers/
+.worktrees/
+.playwright-mcp/
+.claude/traces/
+.claude/scheduled_tasks.lock

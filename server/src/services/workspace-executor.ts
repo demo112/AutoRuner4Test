@@ -1,6 +1,6 @@
 import path from 'path'
 import fs from 'fs'
-import type { ReviewGate, SegmentState, WorkspaceTemplate } from '../db/schema'
+import type { ReviewGate, SegmentState, ParsedWorkspaceTemplate } from '../db/schema'
 import { runClaudeSegment, assembleWorkspaceClaudeDir, buildSegmentPrompt } from './claude-instance'
 import { broadcastGateReached, broadcastSessionCompleted, broadcastSessionFailed, broadcastSessionProgress } from '../ws/handler'
 import * as sessionService from './workspace-session-service'
