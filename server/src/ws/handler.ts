@@ -52,20 +52,20 @@ export function getClientCount(): number {
   return clients.size
 }
 
-// --- Workspace session broadcast helpers ---
+// --- Gate-based session broadcast helpers (V2) ---
 
-export function broadcastStageChanged(sessionId: string, stageId: string, status: string): void {
-  broadcast('session:stage-changed', sessionId, { sessionId, stageId, status })
+export function broadcastGateReached(sessionId: string, gateId: string, gateName: string, output: unknown): void {
+  broadcast('session:gate-reached', sessionId, { sessionId, gateId, gateName, output })
 }
 
-export function broadcastReviewNeeded(sessionId: string, stageId: string, output: unknown): void {
-  broadcast('session:review-needed', sessionId, { sessionId, stageId, output })
+export function broadcastSessionCompleted(sessionId: string, output: unknown): void {
+  broadcast('session:completed', sessionId, { sessionId, output })
 }
 
-export function broadcastSessionCompleted(sessionId: string): void {
-  broadcast('session:completed', sessionId, { sessionId })
+export function broadcastSessionFailed(sessionId: string, error: string): void {
+  broadcast('session:failed', sessionId, { sessionId, error })
 }
 
-export function broadcastSessionFailed(sessionId: string, stageId: string, error: string): void {
-  broadcast('session:failed', sessionId, { sessionId, stageId, error })
+export function broadcastSessionProgress(sessionId: string, segmentIndex: number, totalSegments: number): void {
+  broadcast('session:progress', sessionId, { sessionId, segmentIndex, totalSegments })
 }
