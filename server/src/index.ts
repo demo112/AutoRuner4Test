@@ -13,6 +13,7 @@ import { addClient, removeClient, handleSubscription } from './ws/handler'
 import { workspaceTemplateRoutes } from './routes/workspace-templates'
 import { workspaceSessionRoutes } from './routes/workspace-sessions'
 import { moduleLogger } from './services/logger'
+import { seedStarterTemplates } from './services/starter-templates'
 
 const log = moduleLogger('server')
 
@@ -47,6 +48,7 @@ app.route('/api/workspace-sessions', workspaceSessionRoutes)
 
 // 启动时迁移
 migrate()
+seedStarterTemplates()
 
 if (process.env.SKIP_REDIS !== 'true') {
   try {
