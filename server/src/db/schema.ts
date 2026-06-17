@@ -127,77 +127,129 @@ CREATE TABLE IF NOT EXISTS users (
 )
 `
 
-// Workspace Orchestration 类型
+// Workspace Orchestration V2 类型
 
-export interface ComponentRef {
-  component_id: string
-  source?: string  // "local" | "aimarket://<id>"
-}
-
-export interface Stage {
+export interface ReviewGate {
   id: string
   name: string
   description: string
-  toolbox: string[]        // 阶段特有组件 ID（叠加到全局工具箱）
-  output_spec: string      // 期望产出描述
-  review_required: boolean // 是否强制人工审核
 }
 
 export interface WorkspaceTemplate {
   id: string
   name: string
   description: string
-  role: string               // AI 在此环境中的角色定义
-  constraints: string[]      // 硬性约束规则
-  stages: Stage[]            // 有序阶段列表
-  toolbox: ComponentRef[]    // 全局组件
-  is_public: boolean
+  category: string
+
+  // .claude/ 目录规格
+  claude_md: string
+  skills: string              // JSON ComponentRef[]
+  hooks: string               // JSON HookConfig[]
+  mcp_servers: string         // JSON McpConfig[]
+  rules: string               // JSON RuleRef[]
+
+  // 审核点
+  review_gates: string        // JSON ReviewGate[]
+
+  // 使用者元信息
+  input_schema: string        // JSON Schema object
+  output_description: string
+
+  // 元数据
+  is_public: number
+  is_starter: number
   version: number
-  created_by: string
+  created_by: string | null
   created_at: string
   updated_at: string | null
-}
-
-export interface StageState {
-  status: 'pending' | 'running' | 'waiting_review' | 'completed' | 'failed'
-  started_at: string
-  completed_at: string
-  output: any
-  review_result?: 'approved' | 'rejected'
-  review_comment?: string
-  error?: string
 }
 
 export interface WorkspaceSession {
   id: string
   template_id: string
-  template_version: number
-  status: 'pending' | 'running' | 'paused' | 'completed' | 'failed' | 'cancelled'
-  current_stage: string | null
-  input: Record<string, unknown>      // 用户初始输入
-  context: Record<string, unknown>    // 累积阶段产出
-  stage_states: Record<string, StageState>
-  created_by: string
+  template_version: number | null
+  status: 'pending' | 'running' | 'waiting_review' | 'completed' | 'failed' | 'cancelled'
+  current_gate: string | null
+  input: string               // JSON
+  output: string | null       // JSON
+  review_history: string      // JSON ReviewRecord[]
+  context: string             // JSON
+  segment_states: string      // JSON Record<string, SegmentState>
+  error: string | null
+  created_by: string | null
   started_at: string | null
   completed_at: string | null
   created_at: string
 }
 
+export interface ReviewRecord {
+  gateId: string
+  result: 'approved' | 'rejected'
+  comment: string
+  reviewed_at: string
+}
+
+export interface SegmentState {
+  status: 'pending' | 'running' | 'completed' | 'failed'
+  started_at: string
+  completed_at: string
+  output: unknown
+  error: string | null
+}
+
+export interface ComponentRef {
+  component_id: string
+}
+
+export interface HookConfig {
+  event: string
+  matcher?: string
+  command: string
+}
+
+export interface McpConfig {
+  name: string
+  command: string
+  args?: string[]
+  env?: Record<string, string>
+}
+
+export interface RuleRef {
+  component_id: string
+}
+
+// === V2 SQL ===
+
+export const DROP_V1_TABLES = `
+DROP TABLE IF EXISTS workspace_sessions;
+DROP TABLE IF EXISTS workspace_templates;
+`
+
 export const CREATE_WORKSPACE_TEMPLATES_TABLE = `
 CREATE TABLE IF NOT EXISTS workspace_templates (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
-  description TEXT,
-  role TEXT NOT NULL,
-  constraints TEXT NOT NULL,     -- JSON string[]
-  stages TEXT NOT NULL,          -- JSON Stage[]
-  toolbox TEXT NOT NULL,         -- JSON ComponentRef[]
-  is_public INTEGER DEFAULT 0,
-  version INTEGER DEFAULT 1,
+  description TEXT NOT NULL DEFAULT '',
+  category TEXT NOT NULL DEFAULT '',
+
+  claude_md TEXT NOT NULL DEFAULT '',
+  skills TEXT NOT NULL DEFAULT '[]',
+  hooks TEXT NOT NULL DEFAULT '[]',
+  mcp_servers TEXT NOT NULL DEFAULT '[]',
+  rules TEXT NOT NULL DEFAULT '[]',
+
+  review_gates TEXT NOT NULL DEFAULT '[]',
+
+  input_schema TEXT NOT NULL DEFAULT '{}',
+  output_description TEXT NOT NULL DEFAULT '',
+
+  is_public INTEGER NOT NULL DEFAULT 0,
+  is_starter INTEGER NOT NULL DEFAULT 0,
+  version INTEGER NOT NULL DEFAULT 1,
   created_by TEXT,
-  created_at TEXT DEFAULT (datetime('now')),
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT DEFAULT (datetime('now'))
-)
+);
 `
 
 export const CREATE_WORKSPACE_SESSIONS_TABLE = `
@@ -205,16 +257,19 @@ CREATE TABLE IF NOT EXISTS workspace_sessions (
   id TEXT PRIMARY KEY,
   template_id TEXT NOT NULL REFERENCES workspace_templates(id),
   template_version INTEGER,
-  status TEXT DEFAULT 'pending',
-  current_stage TEXT,
-  input TEXT NOT NULL,            -- JSON
-  context TEXT DEFAULT '{}',      -- JSON
-  stage_states TEXT DEFAULT '{}', -- JSON Record<string, StageState>
+  status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending', 'running', 'waiting_review', 'completed', 'failed', 'cancelled')),
+  current_gate TEXT,
+  input TEXT NOT NULL,
+  output TEXT,
+  review_history TEXT NOT NULL DEFAULT '[]',
+  context TEXT NOT NULL DEFAULT '{}',
+  segment_states TEXT NOT NULL DEFAULT '{}',
+  error TEXT,
   created_by TEXT,
   started_at TEXT,
   completed_at TEXT,
-  created_at TEXT DEFAULT (datetime('now'))
-)
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
 `
 
 export const CREATE_CREDENTIALS_TABLE = `
