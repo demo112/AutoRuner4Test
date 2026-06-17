@@ -6,8 +6,9 @@ const navItems = [
   { to: '/tasks', label: '任务管理', icon: ListTodo },
   { to: '/dashboard', label: '运行监控', icon: Monitor },
   { to: '/knowledge', label: '知识库', icon: BookOpen },
-  { to: '/workspace-templates', label: '工作模板', icon: GitBranch },
-  { to: '/workspace-sessions', label: '工作会话', icon: Play },
+  { to: '/workspace-templates', label: '环境模板', icon: GitBranch },
+  { to: '/workspace-task-launch', label: '任务执行', icon: Play },
+  { to: '/workspace-sessions', label: '执行记录', icon: Monitor },
 ]
 
 export default function Layout() {

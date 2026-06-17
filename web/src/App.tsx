@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard'
 import KnowledgeBase from './pages/KnowledgeBase'
 import WorkspaceTemplates from './pages/WorkspaceTemplates'
 import WorkspaceSessions from './pages/WorkspaceSessions'
+import WorkspaceTaskLaunch from './pages/WorkspaceTaskLaunch'
 
 export default function App() {
   return (
@@ -20,6 +21,7 @@ export default function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/knowledge" element={<KnowledgeBase />} />
           <Route path="/workspace-templates" element={<WorkspaceTemplates />} />
+          <Route path="/workspace-task-launch" element={<WorkspaceTaskLaunch />} />
           <Route path="/workspace-sessions" element={<WorkspaceSessions />} />
         </Route>
       </Routes>
