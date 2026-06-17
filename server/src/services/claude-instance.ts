@@ -258,26 +258,28 @@ export function assembleWorkspaceClaudeDir(
   // settings.json — hooks + mcpServers
   const settings: Record<string, unknown> = {}
   if (template.hooks.length > 0) {
-    settings.hooks = {}
+    const hooksConfig: Record<string, Array<Record<string, unknown>>> = {}
     for (const hook of template.hooks) {
-      if (!settings.hooks[hook.event]) {
-        settings.hooks[hook.event] = []
+      if (!hooksConfig[hook.event]) {
+        hooksConfig[hook.event] = []
       }
-      ;(settings.hooks[hook.event] as Array<Record<string, unknown>>).push({
+      hooksConfig[hook.event].push({
         matcher: hook.matcher || '',
         hooks: [{ type: 'command', command: hook.command }],
       })
     }
+    settings.hooks = hooksConfig
   }
   if (template.mcp_servers.length > 0) {
-    settings.mcpServers = {}
+    const mcpConfig: Record<string, unknown> = {}
     for (const mcp of template.mcp_servers) {
-      settings.mcpServers[mcp.name] = {
+      mcpConfig[mcp.name] = {
         command: mcp.command,
         ...(mcp.args && { args: mcp.args }),
         ...(mcp.env && { env: mcp.env }),
       }
     }
+    settings.mcpServers = mcpConfig
   }
   if (Object.keys(settings).length > 0) {
     fs.writeFileSync(path.join(claudeDir, 'settings.json'), JSON.stringify(settings, null, 2), 'utf-8')
@@ -323,4 +325,54 @@ export function buildSegmentPrompt(params: SegmentPromptParams): string {
   parts.push(`当前段 ${params.segmentIndex + 1}/${params.totalSegments}`)
 
   return parts.join('\n')
+}
+
+// ── V2: Segment execution helpers ────────────────────
+
+const SEGMENT_POLL_INTERVAL_MS = 2000
+const SEGMENT_POLL_TIMEOUT_MS = 10 * 60 * 1000
+
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+function parseCliOutput(raw: string): unknown {
+  try {
+    const parsed = JSON.parse(raw)
+    if (parsed?.result && typeof parsed.result === 'string') {
+      try { return JSON.parse(parsed.result) } catch { return parsed.result }
+    }
+    return parsed
+  } catch {
+    return raw.trim()
+  }
+}
+
+export async function runClaudeSegment(workDir: string, prompt: string): Promise<{ success: boolean; output?: unknown; error?: string }> {
+  const taskId = `seg-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+
+  while (!canStartInstance()) {
+    log.info('Waiting for free instance slot', { taskId })
+    await sleep(SEGMENT_POLL_INTERVAL_MS)
+  }
+
+  const result = startClaudeInstance(taskId, 'workspace-segment', [], {}, prompt)
+  if (result.error || !result.instanceId) {
+    return { success: false, error: result.error || 'Failed to start instance' }
+  }
+
+  // Poll for completion
+  const deadline = Date.now() + SEGMENT_POLL_TIMEOUT_MS
+  while (Date.now() < deadline) {
+    const inst = getInstanceStatus(result.instanceId)
+    if (!inst) return { success: false, error: 'Instance not found' }
+    if (inst.status === 'completed') {
+      return { success: true, output: parseCliOutput(inst.stdout) }
+    }
+    if (inst.status === 'failed') {
+      return { success: false, output: parseCliOutput(inst.stdout), error: inst.stderr || 'Process failed' }
+    }
+    await sleep(SEGMENT_POLL_INTERVAL_MS)
+  }
+  return { success: false, error: 'Segment execution timed out' }
 }
